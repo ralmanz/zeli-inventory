@@ -76,6 +76,26 @@ function cameraErrorMessage(error: unknown): string {
   return 'No se pudo iniciar la cámara.'
 }
 
+function statusBadge(status: ScannerStatus) {
+  switch (status) {
+    case 'scanning':
+      return (
+        <span className="badge badge--success">
+          <span className="badge__dot badge__dot--live" aria-hidden="true" />
+          Escaneando
+        </span>
+      )
+    case 'starting':
+      return <span className="badge badge--neutral">Iniciando…</span>
+    case 'paused':
+      return <span className="badge badge--warning">Pausado</span>
+    case 'error':
+      return <span className="badge badge--error">Error</span>
+    default:
+      return <span className="badge badge--neutral">Inactivo</span>
+  }
+}
+
 export default function BarcodeScanner() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const readerRef = useRef<BrowserMultiFormatReader | null>(null)
@@ -140,7 +160,7 @@ export default function BarcodeScanner() {
     setRecentScans((prev) => [record, ...prev].slice(0, 20))
     setScanCount((count) => count + 1)
     setScanFlash(true)
-    window.setTimeout(() => setScanFlash(false), 350)
+    window.setTimeout(() => setScanFlash(false), 300)
 
     if (navigator.vibrate) {
       navigator.vibrate(40)
@@ -229,16 +249,21 @@ export default function BarcodeScanner() {
 
   return (
     <div className="scanner">
-      <header className="scanner__header">
-        <h1 className="scanner__title">Zeli Inventory</h1>
-        <p className="scanner__subtitle">Prueba de escáner</p>
+      <header className="scanner__header card">
+        <div className="scanner__header-row">
+          <div>
+            <p className="label">Escáner de códigos</p>
+            <h1 className="scanner__title">Prueba de escáner</h1>
+          </div>
+          {statusBadge(status)}
+        </div>
         <p className="scanner__description">
-          Esta prueba mide qué tan rápido y confiable es escanear códigos de barras
-          directamente desde un teléfono.
+          Mide qué tan rápido y confiable es escanear códigos de barras directamente
+          desde un teléfono.
         </p>
       </header>
 
-      <section className="scanner__viewport" aria-live="polite">
+      <section className="scanner__viewport card card--flush" aria-live="polite">
         <div className={`scanner__video-wrap${isCameraActive ? ' scanner__video-wrap--active' : ''}`}>
           <video
             ref={videoRef}
@@ -249,8 +274,7 @@ export default function BarcodeScanner() {
           />
           {isCameraActive && (
             <div className="scanner__guide" aria-hidden="true">
-              <div className="scanner__guide-line scanner__guide-line--top" />
-              <div className="scanner__guide-line scanner__guide-line--bottom" />
+              <div className="scanner__guide-frame" />
               <span className="scanner__guide-label">Alinea el código horizontalmente</span>
             </div>
           )}
@@ -264,13 +288,13 @@ export default function BarcodeScanner() {
 
       <section className="scanner__controls">
         {status === 'scanning' ? (
-          <button type="button" className="btn btn--secondary" onClick={stopCamera}>
+          <button type="button" className="btn btn--secondary btn--block" onClick={stopCamera}>
             Detener cámara
           </button>
         ) : (
           <button
             type="button"
-            className="btn btn--primary"
+            className="btn btn--primary btn--block"
             onClick={startCamera}
             disabled={status === 'starting'}
           >
@@ -279,42 +303,45 @@ export default function BarcodeScanner() {
         )}
 
         {status === 'error' && errorMessage && (
-          <p className="scanner__error" role="alert">
+          <div className="alert alert--error" role="alert">
             {errorMessage}
-          </p>
+          </div>
         )}
 
         {status === 'paused' && errorMessage && (
-          <p className="scanner__notice" role="status">
+          <div className="alert alert--warning" role="status">
             {errorMessage}
-          </p>
-        )}
-      </section>
-
-      <section className="scanner__stats">
-        <div className="stat">
-          <span className="stat__label">Escaneos exitosos</span>
-          <span className="stat__value">{scanCount}</span>
-        </div>
-        {firstScanMs !== null && (
-          <div className="stat">
-            <span className="stat__label">Primer escaneo</span>
-            <span className="stat__value">{(firstScanMs / 1000).toFixed(1)} s</span>
           </div>
         )}
       </section>
 
+      <section className="scanner__stats">
+        <div className="stat card">
+          <span className="stat__label label">Escaneos exitosos</span>
+          <span className="stat__value">{scanCount}</span>
+        </div>
+        <div className="stat card">
+          <span className="stat__label label">Primer escaneo</span>
+          <span className="stat__value">
+            {firstScanMs !== null ? `${(firstScanMs / 1000).toFixed(1)} s` : '—'}
+          </span>
+        </div>
+      </section>
+
       {lastScan && (
-        <section className={`scan-result${scanFlash ? ' scan-result--flash' : ''}`}>
-          <p className="scan-result__label">Código leído</p>
+        <section className={`scan-result card${scanFlash ? ' scan-result--flash' : ''}`}>
+          <div className="scan-result__header">
+            <p className="label">Código leído</p>
+            <span className="badge badge--success">Leído</span>
+          </div>
           <p className="scan-result__code">{lastScan.text}</p>
           <dl className="scan-result__meta">
             <div>
-              <dt>Formato</dt>
+              <dt className="label">Formato</dt>
               <dd>{lastScan.format}</dd>
             </div>
             <div>
-              <dt>Hora</dt>
+              <dt className="label">Hora</dt>
               <dd>{lastScan.time}</dd>
             </div>
           </dl>
@@ -322,15 +349,21 @@ export default function BarcodeScanner() {
       )}
 
       {recentScans.length > 0 && (
-        <section className="scan-history">
+        <section className="scan-history card">
           <h2 className="scan-history__title">Sesión actual</h2>
           <ul className="scan-history__list">
-            {recentScans.map((scan) => (
+            {recentScans.map((scan, index) => (
               <li key={scan.id} className="scan-history__item">
-                <span className="scan-history__code">{scan.text}</span>
-                <span className="scan-history__meta">
-                  {scan.format} · {scan.time}
-                </span>
+                <span
+                  className={`scan-history__indicator${index === 0 && scanFlash ? ' scan-history__indicator--flash' : ''}`}
+                  aria-hidden="true"
+                />
+                <div className="scan-history__content">
+                  <span className="scan-history__code">{scan.text}</span>
+                  <span className="scan-history__meta">
+                    {scan.format} · {scan.time}
+                  </span>
+                </div>
               </li>
             ))}
           </ul>
@@ -338,8 +371,8 @@ export default function BarcodeScanner() {
       )}
 
       <footer className="scanner__footer">
-        <p>
-          Formatos soportados: EAN-13, EAN-8, UPC-A, UPC-E, Code 128, Code 39, ITF
+        <p className="label">
+          Formatos: EAN-13, EAN-8, UPC-A, UPC-E, Code 128, Code 39, ITF
         </p>
       </footer>
     </div>
