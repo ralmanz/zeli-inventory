@@ -223,6 +223,14 @@ button{cursor:pointer}
 .summary-item{display:flex;gap:0.85rem;align-items:flex-start;padding:1rem 1.1rem;border:1px solid var(--rule)}
 .summary-item h3{margin:0 0 .25rem;font-family:var(--serif);font-size:1.05rem;font-weight:650}
 .summary-item .small{margin:0}
+.footnote{padding:0.85rem 1.25rem 1.25rem;border-top:1px solid var(--rule);background:var(--wash)}
+.footnote p{margin:0;max-width:52ch}
+.input-sources{margin-top:1rem;padding:0.85rem 1rem;border:1px solid var(--rule);background:var(--wash)}
+.input-sources__label{margin:0 0 0.55rem;font-size:0.8125rem;font-weight:600;color:var(--ink-soft)}
+.input-sources__row{display:flex;gap:0.5rem;flex-wrap:wrap}
+.input-sources__row .btn{flex:1;min-width:9rem}
+.scanner-input{width:100%;min-height:var(--touch);margin-top:0.65rem;padding:0.65rem 0.75rem;border:1px solid var(--rule-strong);border-radius:var(--radius);background:var(--paper);font:650 1.05rem var(--mono);color:var(--ink)}
+.scanner-input:focus{outline:2px solid var(--forest);outline-offset:2px}
 .qty-block{margin-top:1rem;padding:0.95rem;background:var(--wash);border:1px solid var(--rule);touch-action:manipulation}
 .stepper{display:flex;align-items:center;gap:.5rem;margin-top:.5rem;touch-action:manipulation}
 .stepper__btn{
@@ -298,7 +306,7 @@ button{cursor:pointer}
     <section id="intro" class="screen active">
       <div class="page-head">
         <h1 class="title">Realiza el conteo sin detenerte por excepciones</h1>
-        <p class="subtitle">Carga la base de datos del cliente, realiza el conteo de inventario desde cualquier teléfono y manda los códigos problemáticos a una mesa de excepciones sin frenar al equipo.</p>
+        <p class="subtitle">Carga la base de datos del cliente, realiza el conteo desde teléfono, scanner Bluetooth o PDT compatible, y manda los códigos problemáticos a una mesa de excepciones sin frenar al equipo.</p>
       </div>
       <div class="actions">
         <button class="btn primary" onclick="show('upload')">Ver demo interactiva</button>
@@ -306,9 +314,10 @@ button{cursor:pointer}
       </div>
       <ol class="steps">
         <li><span class="steps__num">1</span><div><strong>Carga</strong><p class="small">Excel / CSV del sistema actual</p></div></li>
-        <li><span class="steps__num">2</span><div><strong>Conteo en campo</strong><p class="small">Teléfono, scanner Bluetooth o manual</p></div></li>
+        <li><span class="steps__num">2</span><div><strong>Conteo en campo</strong><p class="small">Teléfono, scanner Bluetooth, PDT compatible o entrada manual</p></div></li>
         <li><span class="steps__num">3</span><div><strong>Resuelve</strong><p class="small">Excepciones sin detener al colaborador</p></div></li>
       </ol>
+      <p class="small" style="margin-top:1.15rem;padding-top:1rem;border-top:1px solid var(--rule)">El equipo de escaneo puede cambiar; el flujo de inventario sigue siendo el mismo. Usa el equipo que ya tienes.</p>
     </section>
 
     <section id="upload" class="screen">
@@ -340,7 +349,7 @@ button{cursor:pointer}
     <section id="setup" class="screen">
       <div class="page-head">
         <h2 class="title">Inventario · Sucursal Central</h2>
-        <p class="subtitle">Cada colaborador recibe un link. Las zonas ayudan a ordenar el conteo y reducir duplicados.</p>
+        <p class="subtitle">Cada colaborador recibe un link. Todos participan en la misma sesión de inventario, sin importar si escanean con teléfono, Bluetooth o PDT compatible.</p>
       </div>
       <div class="grid">
         <div class="card">
@@ -348,15 +357,19 @@ button{cursor:pointer}
           <div class="stat">7 colaboradores</div>
           <div class="list">
             <div class="rowitem">
-              <div class="worker"><div class="avatar">A</div><div><strong>Andrea</strong><div class="small">Pasillo 1</div></div></div>
+              <div class="worker"><div class="avatar">A</div><div><strong>Andrea</strong><div class="small">Teléfono · Pasillo 1</div></div></div>
               <span class="stamp stamp--ok">Listo</span>
             </div>
             <div class="rowitem">
-              <div class="worker"><div class="avatar avatar--m">M</div><div><strong>Mario</strong><div class="small">Pasillo 2</div></div></div>
+              <div class="worker"><div class="avatar avatar--m">M</div><div><strong>Mario</strong><div class="small">PDT · Pasillo 2</div></div></div>
               <span class="stamp stamp--ok">Listo</span>
             </div>
             <div class="rowitem">
-              <div class="worker"><div class="avatar avatar--n">+5</div><div><strong>Otros</strong><div class="small">Zonas asignadas</div></div></div>
+              <div class="worker"><div class="avatar avatar--n">L</div><div><strong>Luis</strong><div class="small">Scanner Bluetooth · Pasillo 3</div></div></div>
+              <span class="stamp stamp--ok">Listo</span>
+            </div>
+            <div class="rowitem">
+              <div class="worker"><div class="avatar avatar--n">+4</div><div><strong>Otros</strong><div class="small">Zonas asignadas</div></div></div>
               <span class="stamp stamp--ok">Listo</span>
             </div>
           </div>
@@ -364,7 +377,7 @@ button{cursor:pointer}
         <div class="card">
           <div class="small">Link del colaborador</div>
           <div class="mapping" style="margin-top:.5rem">lab.zeli.lat/i/central-a1</div>
-          <p class="small">Sin instalar app. Abre desde el teléfono y comienza el conteo de inventario.</p>
+          <p class="small">Sin instalar app. Abre desde teléfono, tablet o PDT compatible y comienza el conteo de inventario.</p>
           <div class="actions">
             <button class="btn primary" onclick="show('workerChoice')">Probar como colaborador</button>
           </div>
@@ -374,32 +387,83 @@ button{cursor:pointer}
 
     <section id="workerChoice" class="screen">
       <div class="page-head">
-        <h2 class="title">¿Quieres probar el scanner real?</h2>
-        <p class="subtitle">Puedes usar un producto que tengas cerca. Si estás con prisa, continúa con un ejemplo y el resto de la demo funciona exactamente igual.</p>
+        <h2 class="title">Conteo en campo</h2>
+        <p class="subtitle">El conteo no depende de un solo tipo de scanner. Elige cómo quieres probar la lectura de código de barras.</p>
       </div>
-      <div class="grid">
+      <div class="input-sources">
+        <p class="input-sources__label">Escanea con:</p>
+        <div class="input-sources__row">
+          <button class="btn primary" onclick="startRealScan(false)">Cámara</button>
+          <button class="btn secondary" onclick="startExternalScan()">Scanner / PDT</button>
+        </div>
+        <p class="small" style="margin:0.65rem 0 0">También puedes ingresar el código manualmente en la vista de scanner o PDT.</p>
+      </div>
+      <div class="grid" style="margin-top:0.85rem">
         <div class="card choice">
           <span class="stamp stamp--live"><span class="dot"></span> Cámara real</span>
-          <h3>Escanear un producto</h3>
-          <p class="small">Abre la cámara y lee un EAN/UPC real. La lectura se valida y confirma automáticamente.</p>
+          <h3>Escanear con teléfono</h3>
+          <p class="small">Abre la cámara y lee un EAN/UPC real. La lectura entra al mismo flujo de conteo.</p>
           <button class="btn primary full" onclick="startRealScan(false)">Escanear con mi cámara</button>
         </div>
         <div class="card choice">
-          <span class="stamp">Sin cámara</span>
+          <span class="stamp">Scanner / PDT</span>
+          <h3>Simular scanner externo</h3>
+          <p class="small">Bluetooth o PDT compatible: la lectura llega al sistema y sigue el mismo flujo de conteo y excepciones.</p>
+          <button class="btn secondary full" onclick="startExternalScan()">Probar scanner / PDT</button>
+        </div>
+        <div class="card choice" style="grid-column:1/-1">
+          <span class="stamp">Demo guiada</span>
           <h3>Continuar con ejemplo</h3>
           <p class="small">Mostramos un producto reconocido y luego una excepción típica del inventario.</p>
-          <button class="btn secondary full" onclick="runExampleKnown()">Continuar con ejemplo</button>
+          <button class="btn ghost full" onclick="runExampleKnown()">Continuar con ejemplo</button>
         </div>
+      </div>
+    </section>
+
+    <section id="externalScan" class="screen">
+      <div class="page-head">
+        <h2 class="title">Escanea un producto</h2>
+        <p class="subtitle">Los PDT compatibles pueden integrarse al mismo flujo de conteo.</p>
+      </div>
+      <div class="device">
+        <div class="device__head">
+          <div><strong>Pasillo 2</strong><div class="small">Mario · PDT · Conteo activo</div></div>
+          <span class="stamp stamp--live"><span class="dot"></span> En línea</span>
+        </div>
+        <div class="result" style="margin-top:0">
+          <div class="label">Entrada de código</div>
+          <input id="externalBarcodeInput" class="scanner-input" type="text" inputmode="numeric" autocomplete="off" placeholder="Esperando lectura…" aria-label="Código de barras">
+          <div id="externalScanStatus" class="small" style="margin-top:0.5rem">Escanea con el PDT o scanner Bluetooth, o escribe el código y presiona Enter.</div>
+        </div>
+        <div class="scancontrols">
+          <button class="btn secondary" onclick="submitExternalScan()">Confirmar código</button>
+          <button class="btn ghost" onclick="simulateExternalScan()">Simular lectura demo</button>
+        </div>
+        <div class="result">
+          <div class="label">Última lectura</div>
+          <div id="externalScanResult" class="code">—</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn ghost" onclick="show('workerChoice')">Cambiar método</button>
       </div>
     </section>
 
     <section id="scanner" class="screen">
       <div class="page-head">
         <h2 class="title">Escanea un producto</h2>
+        <p class="subtitle">Cámara del teléfono. También puedes cambiar a scanner Bluetooth o PDT compatible.</p>
+      </div>
+      <div class="input-sources" style="margin-top:0;margin-bottom:0.85rem">
+        <p class="input-sources__label">Escanea con:</p>
+        <div class="input-sources__row">
+          <button class="btn primary" disabled>Cámara</button>
+          <button class="btn secondary" onclick="stopScanner();startExternalScan()">Scanner / PDT</button>
+        </div>
       </div>
       <div class="device">
         <div class="device__head">
-          <div><strong>Pasillo 2</strong><div class="small">Mario · Conteo activo</div></div>
+          <div><strong>Pasillo 1</strong><div class="small">Andrea · Teléfono · Conteo activo</div></div>
           <span class="stamp stamp--live"><span class="dot"></span> En línea</span>
         </div>
         <div id="camera" class="camera">
@@ -517,7 +581,7 @@ button{cursor:pointer}
           <div class="grid" style="margin-top:.85rem">
             <div><div class="small">Cantidad</div><strong id="superQty">1</strong></div>
             <div><div class="small">Zona</div><strong>Pasillo 2</strong></div>
-            <div><div class="small">Colaborador</div><strong>Mario</strong></div>
+            <div><div class="small">Colaborador</div><strong>Mario · PDT</strong></div>
           </div>
         </div>
         <div class="card">
@@ -608,7 +672,7 @@ button{cursor:pointer}
       </div>
       <div class="card" style="margin-top:1rem">
         <h3 class="product-name" style="margin-top:0">Propuesta de piloto</h3>
-        <p class="subtitle" style="margin-bottom:.75rem">Probarlo en un próximo inventario real con un equipo pequeño, medir cuántas excepciones aparecen y cuánto tiempo toma resolverlas.</p>
+        <p class="subtitle" style="margin-bottom:.75rem">Probarlo en un próximo inventario real con un equipo pequeño, medir cuántas excepciones aparecen y cuánto tiempo toma resolverlas. Si el cliente ya usa PDT, validamos el modelo durante el piloto y lo incorporamos al mismo flujo cuando sea compatible.</p>
         <div class="actions" style="margin-top:0">
           <button class="btn primary" onclick="toast('Interés registrado en esta demo')">Sí, probaría un piloto</button>
           <button class="btn secondary" onclick="toast('Podemos ajustar el flujo antes de construir')">Cambiaría algo</button>
@@ -622,10 +686,11 @@ button{cursor:pointer}
       </div>
       <div class="summary-list">
         <div class="summary-item"><span class="steps__num">1</span><div><h3>El equipo carga la base de datos del cliente</h3><p class="small">Excel/CSV con SKU, descripción y barcode. No hace falta integración directa para el piloto.</p></div></div>
-        <div class="summary-item"><span class="steps__num">2</span><div><h3>El equipo realiza el conteo desde teléfonos</h3><p class="small">Scanner por cámara, scanner Bluetooth o entrada manual. Barcode + cantidad.</p></div></div>
+        <div class="summary-item"><span class="steps__num">2</span><div><h3>El equipo realiza el conteo con el equipo que ya tiene</h3><p class="small">Teléfono, scanner Bluetooth, PDT compatible o entrada manual. Barcode + cantidad.</p></div></div>
         <div class="summary-item"><span class="steps__num">3</span><div><h3>Un código problemático no frena el conteo</h3><p class="small">Cantidad + foto → excepción → siguiente producto.</p></div></div>
         <div class="summary-item"><span class="steps__num">4</span><div><h3>El supervisor resuelve desde una mesa</h3><p class="small">Sugerencias, búsqueda manual y confirmación humana.</p></div></div>
         <div class="summary-item"><span class="steps__num">5</span><div><h3>El sistema aprende el mapeo durante la sesión</h3><p class="small">El mismo barcode se reconoce automáticamente la próxima vez.</p></div></div>
+        <div class="summary-item" style="border-style:dashed;background:var(--wash)"><span class="steps__num">·</span><div><h3>El flujo es el mismo sin importar el scanner</h3><p class="small">Zeli separa el dispositivo de escaneo del flujo de inventario. Si el equipo puede enviar el código de barras al sistema, el conteo, las excepciones y la conciliación funcionan igual.</p></div></div>
       </div>
       <div class="actions">
         <button class="btn primary" onclick="show('upload')">Ver demo interactiva</button>
@@ -635,12 +700,15 @@ button{cursor:pointer}
       </div>
     </section>
   </main>
+  <footer class="footnote">
+    <p class="small">Los PDT pueden integrarse cuando su modelo permite enviar las lecturas de código al sistema. La compatibilidad se valida por modelo.</p>
+  </footer>
 </div>
 <div id="toast" class="toast">Listo</div>
 <script>
-const screens=['intro','upload','setup','workerChoice','scanner','recognized','exception','sent','supervisor','learned','mappedRecognized','finish','summary'];
-const progress={intro:0,upload:12,setup:24,workerChoice:36,scanner:42,recognized:50,exception:56,sent:62,supervisor:72,learned:82,mappedRecognized:90,finish:100,summary:100};
-const stepLabel={intro:'Inicio',upload:'Paso 1 de 5 · Base de datos del cliente',setup:'Paso 2 de 5 · Equipo',workerChoice:'Paso 3 de 5 · Conteo',scanner:'Vista del colaborador',recognized:'Vista del colaborador',exception:'Vista del colaborador',sent:'El colaborador continúa',supervisor:'Paso 4 de 5 · Mesa de excepciones',learned:'Paso 5 de 5 · Aprendizaje',mappedRecognized:'Mismo inventario · segundo encuentro',finish:'Resultado del piloto',summary:'Resumen · 60 segundos'};
+const screens=['intro','upload','setup','workerChoice','externalScan','scanner','recognized','exception','sent','supervisor','learned','mappedRecognized','finish','summary'];
+const progress={intro:0,upload:12,setup:24,workerChoice:36,externalScan:40,scanner:42,recognized:50,exception:56,sent:62,supervisor:72,learned:82,mappedRecognized:90,finish:100,summary:100};
+const stepLabel={intro:'Inicio',upload:'Paso 1 de 5 · Base de datos del cliente',setup:'Paso 2 de 5 · Equipo',workerChoice:'Paso 3 de 5 · Conteo',externalScan:'Vista del colaborador · Scanner / PDT',scanner:'Vista del colaborador · Cámara',recognized:'Vista del colaborador',exception:'Vista del colaborador',sent:'El colaborador continúa',supervisor:'Paso 4 de 5 · Mesa de excepciones',learned:'Paso 5 de 5 · Aprendizaje',mappedRecognized:'Mismo inventario · segundo encuentro',finish:'Resultado del piloto',summary:'Resumen · 60 segundos'};
 let demo={source:'example',barcode:'737870329060',qty:1,photo:false,afterKnown:false,mappedSku:'SKU 4821',mappedName:'Champú / producto de cuidado',rescan:false};
 let scannerRunning=false,devices=[],rearDevices=[],activeDevice=null,pendingCode='',pendingAt=0,lastAccepted='',lastAcceptedAt=0,audioCtx=null;
 const CONFIRM_WINDOW=3000,COOLDOWN=2200;
@@ -687,9 +755,50 @@ function stopScanner(){try{if(scannerRunning)Quagga.stop()}catch(e){}scannerRunn
 async function startRealScan(rescan){demo.source='real';demo.rescan=!!rescan;show('scanner');ensureAudio();el('scanResult').textContent='—';el('scanStatus').textContent='Solicitando cámara…';setScanState('', 'Preparando cámara…');try{let id=await enumerateCameras();beginScanner(id)}catch(e){setScanState('error','No se pudo abrir la cámara');el('scanStatus').textContent=e.message||String(e)}}
 function beginScanner(id){stopScanner();activeDevice=id;let constraints={width:{ideal:1920},height:{ideal:1080},facingMode:{ideal:'environment'},deviceId:{exact:id}};Quagga.init({inputStream:{type:'LiveStream',target:el('camera'),constraints,area:{top:'20%',right:'3%',left:'3%',bottom:'20%'}},locator:{patchSize:'small',halfSample:false},numOfWorkers:0,frequency:12,locate:true,decoder:{readers:['ean_reader','ean_8_reader','upc_reader','upc_e_reader','code_128_reader','code_39_reader','i2of5_reader']}},err=>{if(err){setScanState('error','Error de cámara');el('scanStatus').textContent=err.message||String(err);return}Quagga.start();scannerRunning=true;setScanState('','Buscando código…');el('scanStatus').textContent='Mantén el código completo dentro del recuadro.';setTimeout(tuneTrack,350)})}
 function switchCamera(){if(!rearDevices.length)return;let i=rearDevices.findIndex(d=>d.deviceId===activeDevice),next=rearDevices[(i+1+rearDevices.length)%rearDevices.length];beginScanner(next.deviceId)}
-function confirmedScan(code,fmt){let raw=String(code),canonical=normalize(raw);lastAccepted=raw;lastAcceptedAt=performance.now();el('scanResult').textContent=canonical;el('scanStatus').textContent=`${fmt} · lectura confirmada`;el('scanFlash').style.display=el('scanCheck').style.display='block';setScanState('success','Código confirmado');beep();navigator.vibrate?.(70);setTimeout(()=>{el('scanFlash').style.display=el('scanCheck').style.display='none';stopScanner();let mappings=getMappings(),m=mappings[canonical]||mappings[raw];if(m){demo.barcode=canonical;demo.mappedSku=m.sku;demo.mappedName=m.name;renderMapped(canonical);el('mappedQty').value=1;show('mappedRecognized');return}demo.barcode=canonical;demo.qty=1;prepareException();show('exception')},700)}
+function processBarcode(code,fmt,source){
+  let raw=String(code||'').trim();
+  if(!raw)return;
+  let canonical=normalize(raw);
+  demo.source=source==='camera'?'real':'external';
+  if(source==='camera'){
+    lastAccepted=raw;lastAcceptedAt=performance.now();
+    el('scanResult').textContent=canonical;
+    el('scanStatus').textContent=`${fmt} · lectura confirmada`;
+    el('scanFlash').style.display=el('scanCheck').style.display='block';
+    setScanState('success','Código confirmado');
+    beep();navigator.vibrate?.(70);
+    setTimeout(()=>{el('scanFlash').style.display=el('scanCheck').style.display='none';stopScanner();routeBarcode(canonical,raw)},700);
+    return;
+  }
+  el('externalScanResult').textContent=canonical;
+  el('externalScanStatus').textContent=`${fmt} · lectura recibida`;
+  beep();navigator.vibrate?.(70);
+  routeBarcode(canonical,raw);
+}
+function routeBarcode(canonical,raw){
+  let mappings=getMappings(),m=mappings[canonical]||mappings[raw];
+  if(m){demo.barcode=canonical;demo.mappedSku=m.sku;demo.mappedName=m.name;renderMapped(canonical);el('mappedQty').value=1;show('mappedRecognized');return}
+  if(canonical==='7501031311309'){runExampleKnown();return}
+  demo.barcode=canonical;demo.qty=1;prepareException();show('exception');
+}
+function confirmedScan(code,fmt){processBarcode(code,fmt,'camera')}
+function startExternalScan(){
+  stopScanner();
+  demo.source='external';
+  show('externalScan');
+  let input=el('externalBarcodeInput');
+  el('externalScanResult').textContent='—';
+  el('externalScanStatus').textContent='Escanea con el PDT o scanner Bluetooth, o escribe el código y presiona Enter.';
+  if(input){input.value='';setTimeout(()=>input.focus(),200)}
+}
+function submitExternalScan(){processBarcode(el('externalBarcodeInput')?.value||'','barcode','external')}
+function simulateExternalScan(){let input=el('externalBarcodeInput');if(input)input.value='737870329060';submitExternalScan()}
 Quagga.onDetected(data=>{if(!scannerRunning||!data?.codeResult?.code)return;let code=String(data.codeResult.code),fmt=data.codeResult.format||'barcode',now=performance.now();if(!checksumValid(code))return;if(code===lastAccepted&&now-lastAcceptedAt<COOLDOWN)return;if(code===pendingCode&&now-pendingAt<=CONFIRM_WINDOW){confirmedScan(code,fmt);pendingCode='';pendingAt=0}else{pendingCode=code;pendingAt=now;setScanState('','Confirmando lectura…');el('scanStatus').textContent='Código detectado; esperando segunda lectura igual…'}});
-document.addEventListener('DOMContentLoaded',()=>{const q=new URLSearchParams(location.search).get('s');if(q&&screens.includes(q))show(q)});
+document.addEventListener('DOMContentLoaded',()=>{
+  el('externalBarcodeInput')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submitExternalScan()}});
+  const q=new URLSearchParams(location.search).get('s');
+  if(q&&screens.includes(q))show(q);
+});
 </script>
 </body>
 </html>
