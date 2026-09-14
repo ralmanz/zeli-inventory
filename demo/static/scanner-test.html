@@ -389,7 +389,7 @@ button{cursor:pointer}
           <span class="stamp stamp--live"><span class="dot"></span> Cámara real</span>
           <h3>Escanear un producto</h3>
           <p class="small">Abre la cámara y lee un EAN/UPC real. La lectura entra al mismo flujo de conteo.</p>
-          <button class="btn primary full" onclick="startRealScan(false)">Escanear con mi cámara</button>
+          <button class="btn primary full" onclick="startRealScan(false,'flow')">Escanear con mi cámara</button>
         </div>
         <div class="card choice">
           <span class="stamp">Sin cámara</span>
@@ -426,7 +426,7 @@ button{cursor:pointer}
         </div>
       </div>
       <div class="actions">
-        <button class="btn ghost" onclick="stopScanner();show('workerChoice')">Saltar scanner</button>
+        <button id="scanBack" class="btn ghost" onclick="leaveScanner()">Saltar scanner</button>
       </div>
     </section>
 
@@ -637,7 +637,7 @@ button{cursor:pointer}
       </div>
       <div class="actions">
         <button class="btn primary" onclick="show('upload')">Ver demo interactiva</button>
-        <button class="btn secondary" onclick="startRealScan(false)">Probar scanner real</button>
+        <button class="btn secondary" onclick="startRealScan(false,'probe')">Probar scanner real</button>
         <button class="btn secondary" onclick="show('finish')">Ver propuesta de piloto</button>
         <button class="btn ghost" onclick="show('intro')">Inicio</button>
       </div>
@@ -654,9 +654,17 @@ const progress={intro:0,upload:12,setup:24,workerChoice:36,scanner:42,recognized
 const stepLabel={intro:'Inicio',upload:'Paso 1 de 5 · Base de datos del cliente',setup:'Paso 2 de 5 · Equipo',workerChoice:'Paso 3 de 5 · Conteo',scanner:'Vista del colaborador',recognized:'Vista del colaborador',exception:'Vista del colaborador',sent:'El colaborador continúa',supervisor:'Paso 4 de 5 · Mesa de excepciones',learned:'Paso 5 de 5 · Aprendizaje',mappedRecognized:'Mismo inventario · segundo encuentro',finish:'Resultado del piloto',summary:'Resumen · 60 segundos'};
 let demo={source:'example',barcode:'737870329060',qty:1,photo:false,afterKnown:false,mappedSku:'SKU 4821',mappedName:'Champú / producto de cuidado',rescan:false};
 let scannerRunning=false,devices=[],rearDevices=[],activeDevice=null,pendingCode='',pendingAt=0,lastAccepted='',lastAcceptedAt=0,audioCtx=null;
+let scanMode='flow',scanReturnTo='workerChoice',scanStartToken=0;
 const CONFIRM_WINDOW=3000,COOLDOWN=2200;
 function el(id){return document.getElementById(id)}
-function show(id){stopScanner();screens.forEach(s=>el(s)?.classList.toggle('active',s===id));el('progressBar').style.width=(progress[id]||0)+'%';const label=el('stepLabel');if(label)label.textContent=stepLabel[id]||'';window.scrollTo({top:0,behavior:'smooth'})}
+function show(id,opts){
+  if(id!=='scanner')stopScanner();
+  screens.forEach(s=>el(s)?.classList.toggle('active',s===id));
+  el('progressBar').style.width=(progress[id]||0)+'%';
+  const label=el('stepLabel');
+  if(label)label.textContent=stepLabel[id]||'';
+  window.scrollTo({top:0,behavior:(opts&&opts.instant)||id==='scanner'?'auto':'smooth'});
+}
 function toast(msg){let t=el('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
 function qtyValue(id){return Math.max(1,Number(el(id).value||1))}
 function stepQty(id,delta){let input=el(id);if(!input)return;let next=Math.max(1,Number(input.value||1)+delta);input.value=next}
@@ -687,16 +695,92 @@ function sendException(){demo.qty=qtyValue('exceptionQty');el('sentCode').textCo
 function confirmMapping(sku,name){demo.mappedSku=sku;demo.mappedName=name;saveMapping(demo.barcode,sku,name);el('mappingLine').textContent=`${demo.barcode}  →  ${sku} · ${name}`;el('rescanBtn').style.display=demo.source==='real'?'inline-block':'none';show('learned')}
 function simulateMappedRescan(){renderMapped(demo.barcode);el('mappedQty').value=1;show('mappedRecognized')}
 function renderMapped(code){let m=getMappings()[normalize(code)]||getMappings()[code]||{sku:demo.mappedSku,name:demo.mappedName};el('mappedCode').textContent=normalize(code);el('mappedName').textContent=m.name;el('mappedSku').textContent=m.sku}
-function rescanMapped(){demo.rescan=true;startRealScan(true)}
+function rescanMapped(){demo.rescan=true;startRealScan(true,'flow')}
 function ensureAudio(){try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();audioCtx.resume()}catch(e){}}
 function beep(){try{ensureAudio();let o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=920;g.gain.value=.13;o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+.1)}catch(e){}}
 function isRear(label=''){return /back|rear|environment|trasera/i.test(label)&&!/front|user|frontal/i.test(label)}
 async function enumerateCameras(){let s=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});s.getTracks().forEach(t=>t.stop());devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');rearDevices=devices.filter(d=>isRear(d.label));if(!rearDevices.length)rearDevices=devices;el('scanSwitch').style.display=rearDevices.length>1?'inline-block':'none';return(rearDevices[0]||devices[0])?.deviceId}
 async function tuneTrack(){try{let v=document.querySelector('#camera video'),t=v?.srcObject?.getVideoTracks()[0];if(!t)return;let c=t.getCapabilities?.()||{},a={};if(c.focusMode?.includes?.('continuous'))a.focusMode='continuous';if(c.zoom)a.zoom=Math.min(Number(c.zoom.max||1),Math.max(Number(c.zoom.min||1),1.6));if(Object.keys(a).length)await t.applyConstraints({advanced:[a]})}catch(e){}}
-function setScanState(kind,text){let c=el('camera'),p=el('scanPill');c.classList.remove('success','error');p.classList.remove('success','error');if(kind==='success'){c.classList.add('success');p.classList.add('success')}if(kind==='error'){c.classList.add('error');p.classList.add('error')}p.textContent=text}
-function stopScanner(){try{if(scannerRunning)Quagga.stop()}catch(e){}scannerRunning=false;activeDevice=null;pendingCode='';pendingAt=0}
-async function startRealScan(rescan){demo.source='real';demo.rescan=!!rescan;show('scanner');ensureAudio();el('scanResult').textContent='—';el('scanStatus').textContent='Solicitando cámara…';setScanState('', 'Preparando cámara…');try{let id=await enumerateCameras();beginScanner(id)}catch(e){setScanState('error','No se pudo abrir la cámara');el('scanStatus').textContent=e.message||String(e)}}
-function beginScanner(id){stopScanner();activeDevice=id;let constraints={width:{ideal:1920},height:{ideal:1080},facingMode:{ideal:'environment'},deviceId:{exact:id}};Quagga.init({inputStream:{type:'LiveStream',target:el('camera'),constraints,area:{top:'20%',right:'3%',left:'3%',bottom:'20%'}},locator:{patchSize:'small',halfSample:false},numOfWorkers:0,frequency:12,locate:true,decoder:{readers:['ean_reader','ean_8_reader','upc_reader','upc_e_reader','code_128_reader','code_39_reader','i2of5_reader']}},err=>{if(err){setScanState('error','Error de cámara');el('scanStatus').textContent=err.message||String(err);return}Quagga.start();scannerRunning=true;setScanState('','Buscando código…');el('scanStatus').textContent='Mantén el código completo dentro del recuadro.';setTimeout(tuneTrack,350)})}
+function setScanState(kind,text){
+  const c=el('camera'),p=el('scanPill');
+  if(!c||!p)return;
+  c.classList.remove('success','error');
+  p.classList.remove('success','error');
+  if(kind==='success'){c.classList.add('success');p.classList.add('success')}
+  if(kind==='error'){c.classList.add('error');p.classList.add('error')}
+  p.textContent=text;
+}
+function cameraErrorMessage(error){
+  const name=error?.name||'';
+  if(name==='NotAllowedError'||name==='PermissionDeniedError')return 'Permiso de cámara denegado. Actívalo en el navegador.';
+  if(name==='NotFoundError'||name==='DevicesNotFoundError')return 'No se encontró ninguna cámara.';
+  if(name==='NotReadableError'||name==='TrackStartError')return 'La cámara está en uso por otra aplicación.';
+  if(name==='OverconstrainedError')return 'No se pudo abrir la cámara trasera con los requisitos actuales.';
+  if(name==='AbortError')return 'Se canceló la apertura de la cámara.';
+  return error?.message||'No se pudo abrir la cámara.';
+}
+function waitForCameraLayout(){
+  return new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+}
+function resetCameraMount(){
+  const cam=el('camera');
+  if(!cam)return;
+  cam.querySelectorAll('video,canvas').forEach(node=>{
+    try{node.srcObject?.getTracks().forEach(t=>t.stop())}catch(e){}
+    node.remove();
+  });
+}
+function stopScanner(){
+  try{Quagga.stop()}catch(e){}
+  scannerRunning=false;
+  activeDevice=null;
+  pendingCode='';
+  pendingAt=0;
+  resetCameraMount();
+}
+function leaveScanner(){
+  stopScanner();
+  show(scanReturnTo||'workerChoice');
+}
+async function startRealScan(rescan,mode){
+  const token=++scanStartToken;
+  demo.source='real';
+  demo.rescan=!!rescan;
+  scanMode=mode==='probe'?'probe':'flow';
+  scanReturnTo=scanMode==='probe'?'summary':'workerChoice';
+  const back=el('scanBack');
+  if(back)back.textContent=scanMode==='probe'?'Volver al resumen':'Saltar scanner';
+  ensureAudio();
+  el('scanResult').textContent='—';
+  el('scanStatus').textContent='Solicitando cámara…';
+  setScanState('','Preparando cámara…');
+  try{
+    const id=await enumerateCameras();
+    if(token!==scanStartToken||document.hidden)return;
+    show('scanner',{instant:true});
+    await waitForCameraLayout();
+    if(token!==scanStartToken||document.hidden)return;
+    beginScanner(id);
+  }catch(e){
+    if(token!==scanStartToken)return;
+    show('scanner',{instant:true});
+    setScanState('error','No se pudo abrir la cámara');
+    el('scanStatus').textContent=cameraErrorMessage(e);
+  }
+}
+function beginScanner(id){
+  stopScanner();
+  activeDevice=id;
+  const constraints={width:{ideal:1920},height:{ideal:1080},facingMode:{ideal:'environment'},deviceId:{exact:id}};
+  Quagga.init({inputStream:{type:'LiveStream',target:el('camera'),constraints,area:{top:'20%',right:'3%',left:'3%',bottom:'20%'}},locator:{patchSize:'small',halfSample:false},numOfWorkers:0,frequency:12,locate:true,decoder:{readers:['ean_reader','ean_8_reader','upc_reader','upc_e_reader','code_128_reader','code_39_reader','i2of5_reader']}},err=>{
+    if(err){setScanState('error','Error de cámara');el('scanStatus').textContent=cameraErrorMessage(err);return}
+    Quagga.start();
+    scannerRunning=true;
+    setScanState('','Buscando código…');
+    el('scanStatus').textContent='Mantén el código completo dentro del recuadro.';
+    setTimeout(tuneTrack,350);
+  });
+}
 function switchCamera(){if(!rearDevices.length)return;let i=rearDevices.findIndex(d=>d.deviceId===activeDevice),next=rearDevices[(i+1+rearDevices.length)%rearDevices.length];beginScanner(next.deviceId)}
 function routeBarcode(canonical,raw){
   let mappings=getMappings(),m=mappings[canonical]||mappings[raw];
@@ -704,8 +788,39 @@ function routeBarcode(canonical,raw){
   if(canonical==='7501031311309'){runExampleKnown();return}
   demo.barcode=canonical;demo.qty=1;prepareException();show('exception');
 }
-function confirmedScan(code,fmt){let raw=String(code),canonical=normalize(raw);lastAccepted=raw;lastAcceptedAt=performance.now();el('scanResult').textContent=canonical;el('scanStatus').textContent=`${fmt} · lectura confirmada`;el('scanFlash').style.display=el('scanCheck').style.display='block';setScanState('success','Código confirmado');beep();navigator.vibrate?.(70);setTimeout(()=>{el('scanFlash').style.display=el('scanCheck').style.display='none';stopScanner();routeBarcode(canonical,raw)},700)}
+function confirmedScan(code,fmt){
+  const raw=String(code),canonical=normalize(raw);
+  lastAccepted=raw;
+  lastAcceptedAt=performance.now();
+  el('scanResult').textContent=canonical;
+  el('scanStatus').textContent=`${fmt} · lectura confirmada`;
+  el('scanFlash').style.display=el('scanCheck').style.display='block';
+  setScanState('success','Código confirmado');
+  beep();
+  navigator.vibrate?.(70);
+
+  if(scanMode==='probe'){
+    setTimeout(()=>{
+      el('scanFlash').style.display=el('scanCheck').style.display='none';
+      if(!scannerRunning)return;
+      setScanState('','Buscando código…');
+      el('scanStatus').textContent='Acerca otro código para seguir probando.';
+    },700);
+    return;
+  }
+
+  setTimeout(()=>{
+    el('scanFlash').style.display=el('scanCheck').style.display='none';
+    stopScanner();
+    routeBarcode(canonical,raw);
+  },700);
+}
 Quagga.onDetected(data=>{if(!scannerRunning||!data?.codeResult?.code)return;let code=String(data.codeResult.code),fmt=data.codeResult.format||'barcode',now=performance.now();if(!checksumValid(code))return;if(code===lastAccepted&&now-lastAcceptedAt<COOLDOWN)return;if(code===pendingCode&&now-pendingAt<=CONFIRM_WINDOW){confirmedScan(code,fmt);pendingCode='';pendingAt=0}else{pendingCode=code;pendingAt=now;setScanState('','Confirmando lectura…');el('scanStatus').textContent='Código detectado; esperando segunda lectura igual…'}});
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden)return;
+  scanStartToken++;
+  stopScanner();
+});
 document.addEventListener('DOMContentLoaded',()=>{const q=new URLSearchParams(location.search).get('s');if(q&&screens.includes(q))show(q)});
 </script>
 </body>
