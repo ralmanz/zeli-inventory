@@ -216,13 +216,24 @@ button{cursor:pointer}
 .summary-item{display:flex;gap:0.85rem;align-items:flex-start;padding:1rem 1.1rem;border:1px solid var(--rule)}
 .summary-item h3{margin:0 0 .25rem;font-family:var(--serif);font-size:1.05rem;font-weight:650}
 .summary-item .small{margin:0}
-.qty-block{margin-top:1rem;padding:0.95rem;background:var(--wash);border:1px solid var(--rule)}
-.stepper{display:flex;align-items:center;gap:.5rem;margin-top:.5rem}
-.stepper__btn{min-width:var(--touch);min-height:var(--touch);padding:0;border-radius:var(--radius);border:1px solid var(--rule-strong);background:var(--paper);color:var(--forest);font-size:1.35rem;font-weight:700;line-height:1;display:grid;place-items:center}
+.qty-block{margin-top:1rem;padding:0.95rem;background:var(--wash);border:1px solid var(--rule);touch-action:manipulation}
+.stepper{display:flex;align-items:center;gap:.5rem;margin-top:.5rem;touch-action:manipulation}
+.stepper__btn{
+  min-width:var(--touch);min-height:var(--touch);padding:0;border-radius:var(--radius);
+  border:1px solid var(--rule-strong);background:var(--paper);color:var(--forest);
+  font-size:1.35rem;font-weight:700;line-height:1;display:grid;place-items:center;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;
+  -webkit-user-select:none;cursor:pointer;
+}
 .stepper__btn:hover{background:var(--forest-wash)}
 .stepper__btn:active{transform:scale(.97)}
 .stepper__btn:disabled{opacity:.4;cursor:not-allowed}
-.stepper__input{width:4.5rem;min-height:var(--touch);text-align:center;border:1px solid var(--rule-strong);border-radius:var(--radius);background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:1.35rem;font-weight:650;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.stepper__input{
+  width:4.5rem;min-height:var(--touch);text-align:center;border:1px solid var(--rule-strong);
+  border-radius:var(--radius);background:var(--paper);color:var(--ink);font-family:var(--serif);
+  font-size:1.35rem;font-weight:650;font-variant-numeric:tabular-nums;-moz-appearance:textfield;
+  touch-action:manipulation;
+}
 .stepper__input::-webkit-outer-spin-button,.stepper__input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .toast{position:fixed;left:50%;bottom:max(24px,calc(12px + env(safe-area-inset-bottom,0px)));transform:translateX(-50%) translateY(12px);background:var(--ink);color:#f8f4ea;border-radius:var(--radius);padding:.65rem 1rem;font-weight:600;font-size:.875rem;opacity:0;pointer-events:none;transition:.15s;z-index:30}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -418,9 +429,9 @@ button{cursor:pointer}
         <div class="qty-block">
           <div class="label">Cantidad física</div>
           <div class="stepper">
-            <button type="button" class="stepper__btn" onclick="stepQty('knownQty',-1)" aria-label="Disminuir">−</button>
+            <button type="button" class="stepper__btn" data-step="-1" aria-label="Disminuir cantidad">−</button>
             <input id="knownQty" class="stepper__input" type="number" min="1" value="12" inputmode="numeric">
-            <button type="button" class="stepper__btn" onclick="stepQty('knownQty',1)" aria-label="Aumentar">+</button>
+            <button type="button" class="stepper__btn" data-step="1" aria-label="Aumentar cantidad">+</button>
           </div>
         </div>
         <div class="actions">
@@ -443,9 +454,9 @@ button{cursor:pointer}
         <div class="qty-block">
           <div class="label">Cantidad</div>
           <div class="stepper">
-            <button type="button" class="stepper__btn" onclick="stepQty('exceptionQty',-1)" aria-label="Disminuir">−</button>
+            <button type="button" class="stepper__btn" data-step="-1" aria-label="Disminuir cantidad">−</button>
             <input id="exceptionQty" class="stepper__input" type="number" min="1" value="1" inputmode="numeric">
-            <button type="button" class="stepper__btn" onclick="stepQty('exceptionQty',1)" aria-label="Aumentar">+</button>
+            <button type="button" class="stepper__btn" data-step="1" aria-label="Aumentar cantidad">+</button>
           </div>
         </div>
         <div class="photoBox" id="photoBox" style="margin-top:1rem">
@@ -554,9 +565,9 @@ button{cursor:pointer}
         <div class="qty-block">
           <div class="label">Cantidad</div>
           <div class="stepper">
-            <button type="button" class="stepper__btn" onclick="stepQty('mappedQty',-1)" aria-label="Disminuir">−</button>
+            <button type="button" class="stepper__btn" data-step="-1" aria-label="Disminuir cantidad">−</button>
             <input id="mappedQty" class="stepper__input" type="number" min="1" value="1" inputmode="numeric">
-            <button type="button" class="stepper__btn" onclick="stepQty('mappedQty',1)" aria-label="Aumentar">+</button>
+            <button type="button" class="stepper__btn" data-step="1" aria-label="Aumentar cantidad">+</button>
           </div>
         </div>
         <div class="actions">
@@ -627,7 +638,20 @@ function el(id){return document.getElementById(id)}
 function show(id){stopScanner();screens.forEach(s=>el(s)?.classList.toggle('active',s===id));el('progressBar').style.width=(progress[id]||0)+'%';const label=el('stepLabel');if(label)label.textContent=stepLabel[id]||'';window.scrollTo({top:0,behavior:'smooth'})}
 function toast(msg){let t=el('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
 function qtyValue(id){return Math.max(1,Number(el(id).value||1))}
-function stepQty(id,delta){let input=el(id),next=Math.max(1,Number(input.value||1)+delta);input.value=next}
+function stepQty(id,delta){let input=el(id);if(!input)return;let next=Math.max(1,Number(input.value||1)+delta);input.value=next}
+function handleStepperPointer(e){
+  const btn=e.target.closest?.('.stepper__btn[data-step]');
+  if(!btn||btn.disabled)return;
+  const input=btn.closest('.stepper')?.querySelector('.stepper__input');
+  if(!input?.id)return;
+  if(e.pointerType==='mouse'&&e.button!==0)return;
+  e.preventDefault();
+  stepQty(input.id,Number(btn.dataset.step));
+}
+document.addEventListener('pointerdown',handleStepperPointer,{passive:false});
+document.addEventListener('dblclick',(e)=>{
+  if(e.target.closest?.('.stepper__btn, .stepper, .qty-block'))e.preventDefault();
+},{passive:false});
 document.addEventListener('input',e=>{if(e.target.classList?.contains('stepper__input')){let v=Math.max(1,Number(e.target.value||1));if(String(v)!==e.target.value)e.target.value=v}});
 function getMappings(){try{return JSON.parse(localStorage.getItem('zeliInventoryDemoMappings')||'{}')}catch(e){return{}}}
 function saveMapping(code,sku,name){let m=getMappings();m[code]={sku,name};localStorage.setItem('zeliInventoryDemoMappings',JSON.stringify(m))}
