@@ -81,7 +81,7 @@ function statusBadge(status: ScannerStatus) {
     case 'scanning':
       return (
         <span className="badge badge--success">
-          <span className="badge__dot badge__dot--live" aria-hidden="true" />
+          <span className="badge__dot" aria-hidden="true" />
           Escaneando
         </span>
       )

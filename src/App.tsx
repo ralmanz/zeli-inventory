@@ -3,12 +3,15 @@ import BarcodeScanner from './components/BarcodeScanner'
 function App() {
   return (
     <div className="app-shell">
-      <header className="topbar">
-        <div className="topbar__brand">
-          <span className="topbar__logo">Zeli</span>
-          <span className="topbar__product">Inventory</span>
+      <header className="letterhead">
+        <div className="letterhead__row">
+          <div className="brand">
+            <span className="brand__name">Zeli</span>
+            <span className="brand__product">Inventory</span>
+          </div>
+          <span className="badge">Prueba técnica</span>
         </div>
-        <span className="badge badge--neutral">Prueba técnica</span>
+        <div className="rule" />
       </header>
 
       <main className="app-shell__content">
