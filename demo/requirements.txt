@@ -1,0 +1,1 @@
+# Standard-library-only demo server. No third-party Python packages required.
