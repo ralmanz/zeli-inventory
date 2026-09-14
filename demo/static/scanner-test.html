@@ -39,13 +39,17 @@
   font-family:var(--sans);
 }
 *{box-sizing:border-box}
-html,body{margin:0;min-height:100%}
+html{margin:0;min-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
 body{
+  margin:0;
+  min-height:100%;
   background:var(--desk);
   color:var(--ink);
   line-height:1.5;
-  min-height:100dvh;
   -webkit-font-smoothing:antialiased;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
 }
 button,input{font:inherit}
 button{cursor:pointer}
@@ -53,12 +57,12 @@ button{cursor:pointer}
   width:100%;
   max-width:760px;
   margin:0 auto;
-  min-height:100dvh;
+  min-height:100%;
   background:var(--paper);
   border-left:1px solid var(--rule);
   border-right:1px solid var(--rule);
   box-shadow:inset 7px 0 0 var(--forest);
-  overflow-x:hidden;
+  overflow:visible;
 }
 .letterhead{
   position:sticky;
@@ -87,7 +91,10 @@ button{cursor:pointer}
 .folio__label{margin:0;font-size:0.8125rem;font-weight:600;color:var(--ink-soft)}
 .progress{flex:1;max-width:42%;height:2px;background:var(--rule);overflow:hidden}
 .progress>div{height:100%;width:0;background:var(--forest);transition:width .2s}
-.shell{padding:1.15rem 1.25rem 3rem}
+.shell{
+  padding:1.15rem 1.25rem;
+  padding-bottom:max(5rem,calc(2rem + env(safe-area-inset-bottom,0px)));
+}
 .screen{display:none}
 .screen.active{display:block}
 .page-head{margin-bottom:1.15rem}
@@ -151,7 +158,7 @@ button{cursor:pointer}
 }
 .steps strong{display:block;font-size:1rem}
 .steps .small{margin:0.15rem 0 0}
-.choice{display:flex;flex-direction:column;min-height:100%}
+.choice{display:flex;flex-direction:column}
 .choice h3{margin:0.7rem 0 0.35rem;font-family:var(--serif);font-size:1.15rem;font-weight:650}
 .choice .btn{margin-top:1rem}
 .file{display:flex;align-items:center;gap:0.85rem;padding:0.85rem;border:1px solid var(--rule);background:var(--wash)}
@@ -217,7 +224,7 @@ button{cursor:pointer}
 .stepper__btn:disabled{opacity:.4;cursor:not-allowed}
 .stepper__input{width:4.5rem;min-height:var(--touch);text-align:center;border:1px solid var(--rule-strong);border-radius:var(--radius);background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:1.35rem;font-weight:650;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
 .stepper__input::-webkit-outer-spin-button,.stepper__input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(12px);background:var(--ink);color:#f8f4ea;border-radius:var(--radius);padding:.65rem 1rem;font-weight:600;font-size:.875rem;opacity:0;pointer-events:none;transition:.15s}
+.toast{position:fixed;left:50%;bottom:max(24px,calc(12px + env(safe-area-inset-bottom,0px)));transform:translateX(-50%) translateY(12px);background:var(--ink);color:#f8f4ea;border-radius:var(--radius);padding:.65rem 1rem;font-weight:600;font-size:.875rem;opacity:0;pointer-events:none;transition:.15s;z-index:30}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 @media(min-width:800px){
   body{padding:1.75rem 1rem 3rem}
@@ -227,13 +234,26 @@ button{cursor:pointer}
 }
 @media(max-width:700px){
   .grid,.outputs,.steps{grid-template-columns:1fr}
-  .shell,.letterhead{padding-left:1.25rem;padding-right:1rem}
+  .letterhead{padding-left:1rem;padding-right:1rem}
+  .shell{
+    padding-left:1rem;
+    padding-right:1rem;
+    /* Extra room above mobile browser chrome (Safari tab bar, etc.) */
+    padding-bottom:max(9rem,calc(4rem + env(safe-area-inset-bottom,0px)));
+  }
+  .actions{
+    flex-direction:column;
+    margin-top:1.25rem;
+    margin-bottom:0.5rem;
+  }
+  .actions .btn{width:100%}
   .stepper__input{flex:1;max-width:5rem}
   .progress{max-width:36%}
   .stamp--brand{display:none}
   .suggestion{grid-template-columns:auto 1fr;gap:0.45rem 0.75rem}
   .suggestion .btn{grid-column:2;justify-self:start}
   .file{flex-wrap:wrap}
+  .summary-list{margin-bottom:0.25rem}
 }
 </style>
 </head>
@@ -257,8 +277,8 @@ button{cursor:pointer}
   <main class="shell">
     <section id="intro" class="screen active">
       <div class="page-head">
-        <h1 class="title">Cuenta sin detenerte por excepciones</h1>
-        <p class="subtitle">Carga la base del cliente, cuenta desde cualquier teléfono y manda los códigos problemáticos a una mesa de excepciones sin frenar al equipo.</p>
+        <h1 class="title">Realiza el conteo sin detenerte por excepciones</h1>
+        <p class="subtitle">Carga la base del cliente, realiza el conteo de inventario desde cualquier teléfono y manda los códigos problemáticos a una mesa de excepciones sin frenar al equipo.</p>
       </div>
       <div class="actions">
         <button class="btn primary" onclick="show('upload')">Ver demo interactiva</button>
@@ -266,7 +286,7 @@ button{cursor:pointer}
       </div>
       <ol class="steps">
         <li><span class="steps__num">1</span><div><strong>Carga</strong><p class="small">Excel / CSV del sistema actual</p></div></li>
-        <li><span class="steps__num">2</span><div><strong>Cuenta</strong><p class="small">Teléfono, scanner Bluetooth o manual</p></div></li>
+        <li><span class="steps__num">2</span><div><strong>Conteo en campo</strong><p class="small">Teléfono, scanner Bluetooth o manual</p></div></li>
         <li><span class="steps__num">3</span><div><strong>Resuelve</strong><p class="small">Excepciones sin detener al colaborador</p></div></li>
       </ol>
     </section>
@@ -324,7 +344,7 @@ button{cursor:pointer}
         <div class="card">
           <div class="small">Link del colaborador</div>
           <div class="mapping" style="margin-top:.5rem">lab.zeli.lat/i/central-a1</div>
-          <p class="small">Sin instalar app. Abre desde el teléfono y comienza a contar.</p>
+          <p class="small">Sin instalar app. Abre desde el teléfono y comienza el conteo de inventario.</p>
           <div class="actions">
             <button class="btn primary" onclick="show('workerChoice')">Probar como colaborador</button>
           </div>
@@ -582,7 +602,7 @@ button{cursor:pointer}
       </div>
       <div class="summary-list">
         <div class="summary-item"><span class="steps__num">1</span><div><h3>El equipo carga el maestro del cliente</h3><p class="small">Excel/CSV con SKU, descripción y barcode. No hace falta integración directa para el piloto.</p></div></div>
-        <div class="summary-item"><span class="steps__num">2</span><div><h3>El equipo cuenta desde teléfonos</h3><p class="small">Scanner por cámara, scanner Bluetooth o entrada manual. Barcode + cantidad.</p></div></div>
+        <div class="summary-item"><span class="steps__num">2</span><div><h3>El equipo realiza el conteo desde teléfonos</h3><p class="small">Scanner por cámara, scanner Bluetooth o entrada manual. Barcode + cantidad.</p></div></div>
         <div class="summary-item"><span class="steps__num">3</span><div><h3>Un código problemático no frena el conteo</h3><p class="small">Cantidad + foto → excepción → siguiente producto.</p></div></div>
         <div class="summary-item"><span class="steps__num">4</span><div><h3>El supervisor resuelve desde una mesa</h3><p class="small">Sugerencias, búsqueda manual y confirmación humana.</p></div></div>
         <div class="summary-item"><span class="steps__num">5</span><div><h3>El sistema aprende el mapeo durante la sesión</h3><p class="small">El mismo barcode se reconoce automáticamente la próxima vez.</p></div></div>
