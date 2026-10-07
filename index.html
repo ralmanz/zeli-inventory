@@ -27,7 +27,7 @@ a{color:#1E2621}a:hover{color:#2B5D8C}
 .body{font-size:1.04rem;max-width:52ch;margin:0;text-wrap:pretty}
 .small{font-size:.86rem}
 .muted{color:#5B655D}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 22px;border-radius:999px;border:1.5px solid #1E2621;background:#1E2621;color:#EFE6D4;font-weight:700;text-decoration:none;line-height:1.1;cursor:pointer;font-size:1rem;font-family:inherit}
+.btn{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 22px;border-radius:999px;border:1.5px solid #1E2621;background:#1E2621;color:#EFE6D4;font-weight:700;text-decoration:none;line-height:1.1;cursor:pointer;font-size:1rem;font-family:inherit;max-width:100%}
 .btn:hover{background:#2B5D8C;border-color:#2B5D8C;color:#F9F4EA}
 .btn.ghost{background:transparent;color:#1E2621}
 .btn.ghost:hover{background:#1E2621;color:#EFE6D4}
@@ -102,28 +102,96 @@ a{color:#1E2621}a:hover{color:#2B5D8C}
 :focus-visible{outline:3px solid #2B5D8C;outline-offset:2px}
 html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+.dhead,.drow{display:grid;grid-template-columns:22px minmax(0,1fr) 56px 84px;gap:12px;align-items:center}
+.dhead{padding:0 8px 6px;border-bottom:1.5px solid #1E2621}
+.drow{min-height:50px;padding:0 8px;border-bottom:1px solid #D5C9B1}
+.drow.mark{background:#FBEBB5}
+.dhead>:nth-child(n+3),.drow>:nth-child(n+3){text-align:right}
+.btn-short{display:none}
+.split>*{min-width:0}
+section,nav#pasos{scroll-margin-top:12px}
+
+@media (max-width:720px){
+  .wrap{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+  .site-header{
+    position:sticky;top:0;z-index:20;
+    background:rgba(239,230,212,.94);
+    backdrop-filter:saturate(1.2) blur(10px);
+    padding-top:max(10px,env(safe-area-inset-top))!important;
+    padding-bottom:10px!important;
+    gap:10px!important;
+    flex-wrap:nowrap!important;
+    border-bottom:1px solid #D5C9B1;
+  }
+  .site-nav{gap:0!important}
+  .site-nav a:not(.btn){display:none}
+  .site-nav .btn{min-height:40px;padding:8px 14px;font-size:.92rem}
+  .site-nav .btn-long{display:none}
+  .site-nav .btn-short{display:inline}
+  .hero{padding-top:20px!important;padding-bottom:40px!important;gap:28px!important}
+  .y-pad{padding-top:48px!important;padding-bottom:48px!important}
+  .split{gap:28px!important}
+  .hero-actions{flex-direction:column;align-items:stretch}
+  .hero-actions .btn{width:100%}
+  .stepnav{
+    display:flex!important;
+    overflow-x:auto;
+    gap:0!important;
+    scroll-snap-type:x proximity;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .stepnav::-webkit-scrollbar{display:none}
+  .navstep{flex:0 0 auto;scroll-snap-align:start;min-width:128px;padding:12px 16px}
+  .navstep span{font-size:.84rem}
+  .card{padding:16px;border-radius:14px;box-shadow:4px 4px 0 #1E2621}
+  .stepn{font-size:3.4rem}
+  .display{font-size:clamp(2.15rem,11vw,2.7rem)}
+  .h2{font-size:clamp(1.65rem,7.5vw,2rem)}
+  .lede,.body{font-size:1.02rem}
+  .scanbox{flex-direction:column!important;align-items:flex-start!important}
+  .scanbox svg{width:min(100%,220px);height:auto}
+  .chip{white-space:normal}
+  .sortsw{width:100%}
+  .sortsw button{flex:1;min-height:44px}
+  .dhead{display:none}
+  .drow{
+    display:flex;flex-wrap:wrap;align-items:center;
+    gap:4px 10px;min-height:0;padding:12px 2px;
+  }
+  .drow>:nth-child(2){flex:1 1 0;min-width:0}
+  .drow>:nth-child(3){margin-left:32px;text-align:left!important}
+  .drow>:nth-child(4){text-align:left!important}
+  .cause{flex-wrap:wrap}
+  .cause>span:last-child{white-space:normal!important}
+  .res [data-show="pending"],#bat [data-show="pending"]{flex-direction:column;width:100%}
+  .res [data-show="pending"] .btn,#bat [data-show="pending"] .btn{width:100%}
+  footer .wrap{padding-bottom:max(22px,env(safe-area-inset-bottom))!important}
+  section,nav#pasos{scroll-margin-top:64px}
+}
 </style>
 </head>
 <body>
 <div class="z">
 
-<header class="wrap" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-top: 22px; padding-bottom: 22px">
+<header class="wrap site-header" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-top: 22px; padding-bottom: 22px">
   <a href="#inicio" style="display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 800; font-stretch: 80%; font-size: 1.25rem; letter-spacing: .01em" aria-label="Zeli Inventory, inicio">
     <svg width="24" height="20" viewBox="0 0 22 18" fill="currentColor" aria-hidden="true"><rect x="0" width="3" height="18"></rect><rect x="5" width="1.5" height="18"></rect><rect x="8.5" width="3" height="18"></rect><rect x="13.5" width="1.5" height="18"></rect><rect x="17" width="5" height="18"></rect></svg>
     <span>Zeli <span style="font-weight: 450">Inventory</span></span>
   </a>
-  <nav aria-label="Secciones" style="display: flex; align-items: center; gap: 22px; flex-wrap: wrap">
+  <nav class="site-nav" aria-label="Secciones" style="display: flex; align-items: center; gap: 22px; flex-wrap: wrap">
     <a href="#pasos" style="font-weight: 650; text-decoration: none">Cómo funciona</a>
     <a href="#datos" style="font-weight: 650; text-decoration: none">Qué necesitamos</a>
-    <a class="btn" href="#piloto" style="min-height: 44px; padding: 10px 18px">Probar con un conteo real</a>
+    <a class="btn" href="#piloto" style="min-height: 44px; padding: 10px 18px"><span class="btn-long">Probar con un conteo real</span><span class="btn-short">Probar</span></a>
   </nav>
 </header>
 
-<section id="inicio" class="wrap" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(460px, 100%), 1fr)); gap: 56px; align-items: center; padding-top: 40px; padding-bottom: 96px">
+<section id="inicio" class="wrap split hero" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(460px, 100%), 1fr)); gap: 56px; align-items: center; padding-top: 40px; padding-bottom: 96px">
   <div style="display: flex; flex-direction: column; gap: 26px">
     <h1 class="display">Cada diferencia de inventario, explicada con su documento.</h1>
     <p class="lede">Zeli acompaña tu conteo y la conciliación. Mientras cuentan, sugiere qué producto es cada código desconocido. Después, propone por qué el físico no cuadra con el sistema, empezando por lo que más dinero mueve. Tú revisas y apruebas cada cambio.</p>
-    <div style="display: flex; gap: 12px; flex-wrap: wrap">
+    <div class="hero-actions" style="display: flex; gap: 12px; flex-wrap: wrap">
       <a class="btn" href="#piloto">Probar con un conteo real</a>
       <a class="btn ghost" href="#pasos">Ver cómo funciona</a>
     </div>
@@ -164,7 +232,7 @@ html{scroll-behavior:smooth}
 </section>
 
 <nav id="pasos" aria-label="Pasos del proceso" style="border-top: 1.5px solid #1E2621; border-bottom: 1.5px solid #1E2621; background: #F9F4EA">
-  <div class="wrap" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr)); gap: 0 20px">
+  <div class="wrap stepnav" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr)); gap: 0 20px">
     <a class="navstep" href="#paso1"><b>01</b><span>Tu corte</span></a>
     <a class="navstep" href="#paso2"><b>02</b><span>Durante el conteo</span></a>
     <a class="navstep" href="#paso3"><b>03</b><span>Al cerrar el conteo</span></a>
@@ -173,7 +241,7 @@ html{scroll-behavior:smooth}
   </div>
 </nav>
 
-<section id="paso1" class="wrap" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 56px; align-items: center; padding-top: 104px; padding-bottom: 104px">
+<section id="paso1" class="wrap split y-pad" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 56px; align-items: center; padding-top: 104px; padding-bottom: 104px">
   <div style="display: flex; flex-direction: column; gap: 22px">
     <p class="stepn">01</p>
     <h2 class="h2">Partimos de tu corte.</h2>
@@ -213,7 +281,7 @@ html{scroll-behavior:smooth}
 </section>
 
 <section id="paso2" style="border-top: 1.5px solid #1E2621">
-<div class="wrap" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 56px; align-items: center; padding-top: 104px; padding-bottom: 104px">
+<div class="wrap split y-pad" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 56px; align-items: center; padding-top: 104px; padding-bottom: 104px">
   <div style="display: flex; flex-direction: column; gap: 22px">
     <p class="stepn">02</p>
     <h2 class="h2">Durante el conteo, un código desconocido no detiene al equipo.</h2>
@@ -225,7 +293,7 @@ html{scroll-behavior:smooth}
     <p class="small muted" style="margin: 0; max-width: 52ch">Si cuentan con su propio sistema, este paso es opcional: lo que no se resolvió en el conteo aparece después como causa posible en la investigación.</p>
   </div>
   <div class="card scene" role="img" aria-label="Un código no encontrado durante el conteo. Zeli sugiere dos productos ordenados por coincidencia, el supervisor confirma el primero y el código queda aprendido.">
-    <div style="position: relative; display: flex; align-items: center; gap: 16px; padding: 14px; border: 1.5px dashed #B9AD95; border-radius: 12px; background: #EFE6D4">
+    <div class="scanbox" style="position: relative; display: flex; align-items: center; gap: 16px; padding: 14px; border: 1.5px dashed #B9AD95; border-radius: 12px; background: #EFE6D4">
       <svg width="132" height="56" viewBox="0 0 132 56" fill="#1E2621" aria-hidden="true"><rect x="0" width="3" height="56"></rect><rect x="5" width="1.5" height="56"></rect><rect x="9" width="4" height="56"></rect><rect x="15" width="1.5" height="56"></rect><rect x="19" width="2" height="56"></rect><rect x="24" width="4" height="56"></rect><rect x="30" width="1.5" height="56"></rect><rect x="34" width="3" height="56"></rect><rect x="40" width="1.5" height="56"></rect><rect x="44" width="2" height="56"></rect><rect x="49" width="4" height="56"></rect><rect x="55" width="1.5" height="56"></rect><rect x="59" width="3" height="56"></rect><rect x="65" width="2" height="56"></rect><rect x="70" width="1.5" height="56"></rect><rect x="74" width="4" height="56"></rect><rect x="80" width="1.5" height="56"></rect><rect x="84" width="3" height="56"></rect><rect x="90" width="2" height="56"></rect><rect x="95" width="1.5" height="56"></rect><rect x="99" width="4" height="56"></rect><rect x="105" width="1.5" height="56"></rect><rect x="109" width="3" height="56"></rect><rect x="115" width="2" height="56"></rect><rect x="120" width="1.5" height="56"></rect><rect x="124" width="3" height="56"></rect><rect x="129" width="3" height="56"></rect></svg>
       <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
         <span class="mono" style="font-size: .95rem">7412345100148</span>
@@ -255,7 +323,7 @@ html{scroll-behavior:smooth}
 </section>
 
 <section id="paso3" style="border-top: 1.5px solid #1E2621">
-<div class="wrap" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 56px; align-items: center; padding-top: 104px; padding-bottom: 104px">
+<div class="wrap split y-pad" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 56px; align-items: center; padding-top: 104px; padding-bottom: 104px">
   <div style="display: flex; flex-direction: column; gap: 22px">
     <p class="stepn">03</p>
     <h2 class="h2">Al cerrar, las diferencias se ordenan por dinero, no por cantidad.</h2>
@@ -273,25 +341,25 @@ html{scroll-behavior:smooth}
         <button type="button" id="sortValue" aria-pressed="false">Por valor</button>
       </div>
     </div>
-    <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; padding: 0 8px 6px; border-bottom: 1.5px solid #1E2621" class="small muted">
+    <div class="dhead small muted">
       <span></span><span>Producto</span><span style="text-align: right">Unidades</span><span style="text-align: right">Valor</span>
     </div>
     <div data-sort="units" style="display: flex; flex-direction: column">
-        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc A">A</span><span style="font-weight: 650">Breaker 2 polos 40 A</span><b class="num pos" style="text-align: right">+15</b><span class="num muted" style="text-align: right">+$276</span></div>
-        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc C">C</span><span style="font-weight: 650">Maní salado 200 g</span><b class="num neg" style="text-align: right">−14</b><span class="num muted" style="text-align: right">−$26</span></div>
-        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc C">C</span><span style="font-weight: 650">Galletas de soda</span><b class="num neg" style="text-align: right">−8</b><span class="num muted" style="text-align: right">−$26</span></div>
-        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc A">A</span><span style="font-weight: 650">Inversor solar 3 kW</span><b class="num pos" style="text-align: right">+2</b><span class="num muted" style="text-align: right">+$1,224</span></div>
-        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc A">A</span><span style="font-weight: 650">Rotomartillo SDS-plus</span><b class="num neg" style="text-align: right">−2</b><span class="num muted" style="text-align: right">−$476</span></div>
-        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1; background: #FBEBB5"><span class="abc A">A</span><span style="font-weight: 650">Batería de litio 48V</span><b class="num neg" style="text-align: right">−1</b><span class="num muted" style="text-align: right">−$1,450</span></div>
+        <div class="drow"><span class="abc A">A</span><span style="font-weight: 650">Breaker 2 polos 40 A</span><b class="num pos" style="text-align: right">+15</b><span class="num muted" style="text-align: right">+$276</span></div>
+        <div class="drow"><span class="abc C">C</span><span style="font-weight: 650">Maní salado 200 g</span><b class="num neg" style="text-align: right">−14</b><span class="num muted" style="text-align: right">−$26</span></div>
+        <div class="drow"><span class="abc C">C</span><span style="font-weight: 650">Galletas de soda</span><b class="num neg" style="text-align: right">−8</b><span class="num muted" style="text-align: right">−$26</span></div>
+        <div class="drow"><span class="abc A">A</span><span style="font-weight: 650">Inversor solar 3 kW</span><b class="num pos" style="text-align: right">+2</b><span class="num muted" style="text-align: right">+$1,224</span></div>
+        <div class="drow"><span class="abc A">A</span><span style="font-weight: 650">Rotomartillo SDS-plus</span><b class="num neg" style="text-align: right">−2</b><span class="num muted" style="text-align: right">−$476</span></div>
+        <div class="drow mark"><span class="abc A">A</span><span style="font-weight: 650">Batería de litio 48V</span><b class="num neg" style="text-align: right">−1</b><span class="num muted" style="text-align: right">−$1,450</span></div>
         <p class="small" style="margin: 14px 0 0; font-weight: 650">Por unidades, la batería queda al final: solo falta una.</p>
       </div>
     <div data-sort="value" hidden style="display: flex; flex-direction: column">
-        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1; background: #FBEBB5"><span class="abc A">A</span><span style="font-weight: 650">Batería de litio 48V</span><span class="num muted" style="text-align: right">−1</span><b class="num neg" style="text-align: right">−$1,450</b></div>
-        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc A">A</span><span style="font-weight: 650">Inversor solar 3 kW</span><span class="num muted" style="text-align: right">+2</span><b class="num pos" style="text-align: right">+$1,224</b></div>
-        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc A">A</span><span style="font-weight: 650">Rotomartillo SDS-plus</span><span class="num muted" style="text-align: right">−2</span><b class="num neg" style="text-align: right">−$476</b></div>
-        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc A">A</span><span style="font-weight: 650">Breaker 2 polos 40 A</span><span class="num muted" style="text-align: right">+15</span><b class="num pos" style="text-align: right">+$276</b></div>
-        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc C">C</span><span style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-weight: 650">Maní salado 200 g <span class="status st-merma">Merma normal</span></span><span class="num muted" style="text-align: right">−14</span><b class="num neg" style="text-align: right">−$26</b></div>
-        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc C">C</span><span style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-weight: 650">Galletas de soda <span class="status st-merma">Merma normal</span></span><span class="num muted" style="text-align: right">−8</span><b class="num neg" style="text-align: right">−$26</b></div>
+        <div class="drow mark"><span class="abc A">A</span><span style="font-weight: 650">Batería de litio 48V</span><span class="num muted" style="text-align: right">−1</span><b class="num neg" style="text-align: right">−$1,450</b></div>
+        <div class="drow"><span class="abc A">A</span><span style="font-weight: 650">Inversor solar 3 kW</span><span class="num muted" style="text-align: right">+2</span><b class="num pos" style="text-align: right">+$1,224</b></div>
+        <div class="drow"><span class="abc A">A</span><span style="font-weight: 650">Rotomartillo SDS-plus</span><span class="num muted" style="text-align: right">−2</span><b class="num neg" style="text-align: right">−$476</b></div>
+        <div class="drow"><span class="abc A">A</span><span style="font-weight: 650">Breaker 2 polos 40 A</span><span class="num muted" style="text-align: right">+15</span><b class="num pos" style="text-align: right">+$276</b></div>
+        <div class="drow"><span class="abc C">C</span><span style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-weight: 650">Maní salado 200 g <span class="status st-merma">Merma normal</span></span><span class="num muted" style="text-align: right">−14</span><b class="num neg" style="text-align: right">−$26</b></div>
+        <div class="drow"><span class="abc C">C</span><span style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-weight: 650">Galletas de soda <span class="status st-merma">Merma normal</span></span><span class="num muted" style="text-align: right">−8</span><b class="num neg" style="text-align: right">−$26</b></div>
         <p class="small" style="margin: 14px 0 0; font-weight: 650">Por valor, la misma batería es la diferencia más cara. Va primero.</p>
       </div>
   </div>
@@ -299,7 +367,7 @@ html{scroll-behavior:smooth}
 </section>
 
 <section id="paso4" style="border-top: 1.5px solid #1E2621">
-<div class="wrap" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 56px; align-items: center; padding-top: 104px; padding-bottom: 104px">
+<div class="wrap split y-pad" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 56px; align-items: center; padding-top: 104px; padding-bottom: 104px">
   <div style="display: flex; flex-direction: column; gap: 22px">
     <p class="stepn">04</p>
     <h2 class="h2">En la investigación, cada causa probable llega con su documento.</h2>
@@ -326,10 +394,10 @@ html{scroll-behavior:smooth}
         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap"><span class="tag">FAC-0045812</span><span class="small muted">El Kardex ya lo descontó; el cliente aún no retira.</span></div>
         <div style="height: 6px; border-radius: 3px; background: #E2D8C4; overflow: hidden"><div class="bar" style="width: 100%"></div></div>
       </div>
-      <div style="padding: 10px 14px; border: 1.5px solid #D5C9B1; border-radius: 12px; display: flex; justify-content: space-between; gap: 10px; color: #5B655D">
+      <div class="cause" style="padding: 10px 14px; border: 1.5px solid #D5C9B1; border-radius: 12px; display: flex; justify-content: space-between; gap: 10px; color: #5B655D">
         <span><b style="font-weight: 650">2. Recibido, no registrado</b><br><span class="small">Hay una recepción pendiente, pero es de paneles.</span></span><span class="small" style="font-weight: 700; white-space: nowrap">No aplica</span>
       </div>
-      <div style="padding: 10px 14px; border: 1.5px solid #D5C9B1; border-radius: 12px; display: flex; justify-content: space-between; gap: 10px; color: #5B655D">
+      <div class="cause" style="padding: 10px 14px; border: 1.5px solid #D5C9B1; border-radius: 12px; display: flex; justify-content: space-between; gap: 10px; color: #5B655D">
         <span><b style="font-weight: 650">3. Error en el Kardex</b><br><span class="small">Sin movimientos duplicados ni unidades distintas.</span></span><span class="small" style="font-weight: 700; white-space: nowrap">No aplica</span>
       </div>
     </div>
@@ -346,7 +414,7 @@ html{scroll-behavior:smooth}
 </section>
 
 <section id="paso5" style="border-top: 1.5px solid #1E2621">
-<div class="wrap" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 56px; align-items: center; padding-top: 104px; padding-bottom: 104px">
+<div class="wrap split y-pad" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 56px; align-items: center; padding-top: 104px; padding-bottom: 104px">
   <div style="display: flex; flex-direction: column; gap: 22px">
     <p class="stepn">05</p>
     <h2 class="h2">En la aprobación, nada cambia en tu sistema sin tu firma.</h2>
@@ -442,7 +510,7 @@ html{scroll-behavior:smooth}
 </section>
 
 <section id="datos" style="border-top: 1.5px solid #1E2621; background: #F9F4EA">
-<div class="wrap" style="padding-top: 104px; padding-bottom: 104px; display: flex; flex-direction: column; gap: 40px">
+<div class="wrap y-pad" style="padding-top: 104px; padding-bottom: 104px; display: flex; flex-direction: column; gap: 40px">
   <div style="display: flex; flex-direction: column; gap: 18px; max-width: 760px">
     <h2 class="h2">Lo que Zeli necesita de tu sistema</h2>
     <p class="body">Reportes que la mayoría de los ERP ya exportan a Excel, a la fecha del conteo. Mientras más completos, más diferencias se explican.</p>
@@ -464,7 +532,7 @@ html{scroll-behavior:smooth}
 </section>
 
 <section id="piloto" style="background: #1E2621; color: #F9F4EA">
-<div class="wrap" style="padding-top: 104px; padding-bottom: 104px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 40px; align-items: end">
+<div class="wrap split y-pad" style="padding-top: 104px; padding-bottom: 104px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 40px; align-items: end">
   <div style="display: flex; flex-direction: column; gap: 20px">
     <h2 class="display" style="color: #F9F4EA">Probémoslo con tu último conteo.</h2>
     <p class="lede" style="color: #E2D8C4">Envíanos los reportes de un conteo reciente. Te devolvemos qué diferencias se explican, con qué documento, y cuáles quedan para tu revisión.</p>
