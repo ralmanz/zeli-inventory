@@ -1,24 +1,534 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#EFE6D4" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,560;8..60,650&display=swap"
-      rel="stylesheet"
-    />
-    <meta
-      name="description"
-      content="Prueba técnica de escaneo de códigos de barras para Zeli Inventory."
-    />
-    <title>Zeli Inventory — Prueba de escáner</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zeli Inventory: cada diferencia explicada</title>
+<meta name="description" content="Zeli acompaña tu conteo de inventario y la conciliación: sugiere qué producto es cada código desconocido y propone por qué el físico no cuadra con el sistema, con su documento. Tú apruebas cada cambio.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Zeli Inventory: cada diferencia de inventario, explicada con su documento">
+<meta property="og:description" content="Zeli acompaña tu conteo de inventario y la conciliación: sugiere qué producto es cada código desconocido y propone por qué el físico no cuadra con el sistema, con su documento. Tú apruebas cada cambio.">
+<meta property="og:url" content="https://inventory.lab.zeli.lat/">
+<meta name="theme-color" content="#EFE6D4">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 18'%3E%3Crect width='22' height='18' rx='3' fill='%23F1C232'/%3E%3Cg fill='%231E2621'%3E%3Crect x='3' y='3' width='2.5' height='12'/%3E%3Crect x='7' y='3' width='1.2' height='12'/%3E%3Crect x='9.8' y='3' width='2.5' height='12'/%3E%3Crect x='14' y='3' width='1.2' height='12'/%3E%3Crect x='16.6' y='3' width='2.4' height='12'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#EFE6D4}
+a{color:#1E2621}a:hover{color:#2B5D8C}
+.z{font-family:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;color:#1E2621;background:#EFE6D4;line-height:1.5;-webkit-font-smoothing:antialiased}
+.mono{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;font-weight:500;letter-spacing:.02em}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1160px;margin:0 auto;padding-left:24px;padding-right:24px;box-sizing:border-box}
+.display{font-size:clamp(2.6rem,6.2vw,5rem);font-weight:800;font-stretch:68%;line-height:.94;letter-spacing:-.01em;margin:0;text-wrap:balance}
+.h2{font-size:clamp(1.9rem,3.6vw,2.9rem);font-weight:780;font-stretch:72%;line-height:1;margin:0;text-wrap:balance}
+.lede{font-size:1.14rem;max-width:56ch;margin:0;text-wrap:pretty}
+.body{font-size:1.04rem;max-width:52ch;margin:0;text-wrap:pretty}
+.small{font-size:.86rem}
+.muted{color:#5B655D}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 22px;border-radius:999px;border:1.5px solid #1E2621;background:#1E2621;color:#EFE6D4;font-weight:700;text-decoration:none;line-height:1.1;cursor:pointer;font-size:1rem;font-family:inherit}
+.btn:hover{background:#2B5D8C;border-color:#2B5D8C;color:#F9F4EA}
+.btn.ghost{background:transparent;color:#1E2621}
+.btn.ghost:hover{background:#1E2621;color:#EFE6D4}
+.btn.light{background:#F1C232;border-color:#F1C232;color:#2A2108}
+.btn.light:hover{background:#F9F4EA;border-color:#F9F4EA;color:#1E2621}
+.tag{position:relative;display:inline-flex;align-items:center;background:#F1C232;color:#2A2108;border-radius:4px 10px 10px 4px;padding:3px 10px 3px 22px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:600;font-size:.82rem;letter-spacing:.03em;white-space:nowrap}
+.tag::before{content:"";position:absolute;left:8px;top:50%;width:7px;height:7px;margin-top:-3.5px;border-radius:50%;background:#FBEBB5}
+.tag.out{background:transparent;color:#B0382B;box-shadow:inset 0 0 0 1.5px #B0382B}
+.tag.out::before{background:#B0382B}
+.card{background:#F9F4EA;border:1.5px solid #1E2621;border-radius:18px;box-shadow:8px 8px 0 #1E2621;padding:22px;box-sizing:border-box}
+.stepn{font-size:clamp(4.5rem,9vw,7.5rem);font-weight:800;font-stretch:62%;line-height:.8;color:#F1C232;-webkit-text-stroke:1.5px #1E2621;margin:0}
+.who{display:grid;grid-template-columns:auto 1fr;gap:10px 14px;align-items:baseline;margin:0;padding:16px 0 0;border-top:1.5px solid #1E2621;max-width:52ch}
+.who dt{margin:0}
+.who dd{margin:0;font-size:.98rem}
+.lab{display:inline-flex;align-items:center;justify-content:center;min-width:46px;padding:2px 10px;border-radius:6px;font-weight:800;font-size:.8rem}
+.lab.zeli{background:#F1C232;color:#2A2108}
+.lab.tu{background:#1E2621;color:#F9F4EA}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #D5C9B1;border-radius:999px;padding:5px 12px;font-size:.84rem;font-weight:650;background:#F9F4EA;white-space:nowrap}
+.chip svg{width:14px;height:14px;flex:none}
+.pos{color:#2B5D8C}.neg{color:#B0382B}.ok{color:#2C7A4C}
+.abc{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;font-weight:800;font-size:.76rem;border:1.5px solid #1E2621;flex:none}
+.abc.A{background:#1E2621;color:#F9F4EA}
+.abc.C{border-color:#B9AD95;color:#5B655D}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:780;border-radius:6px;padding:3px 9px;white-space:nowrap}
+.st-ok{background:#DCEBDC;color:#2C7A4C}
+.st-merma{background:#E2D8C4;color:#1E2621}
+.navstep{display:flex;flex-direction:column;gap:2px;padding:14px 4px;text-decoration:none;color:#1E2621;border-top:3px solid transparent;min-width:0}
+.navstep:hover{border-top-color:#F1C232;color:#1E2621}
+.navstep b{font-weight:800;font-stretch:70%;font-size:1.5rem;line-height:1}
+.navstep span{font-size:.9rem;font-weight:650}
+
+/* one 11 s loop per scene; items enter in order, hold, then the scene resets */
+.scene{--dur:11s}
+.a1,.a2,.a3,.a4,.a5{animation-duration:var(--dur);animation-iteration-count:infinite;animation-fill-mode:both;animation-timing-function:cubic-bezier(.2,.7,.2,1)}
+.a1{animation-name:in1}.a2{animation-name:in2}.a3{animation-name:in3}.a4{animation-name:in4}.a5{animation-name:in5}
+@keyframes in1{0%,8%{opacity:0;transform:translateY(8px)}14%,88%{opacity:1;transform:none}95%,100%{opacity:0;transform:none}}
+@keyframes in2{0%,24%{opacity:0;transform:translateY(8px)}30%,88%{opacity:1;transform:none}95%,100%{opacity:0;transform:none}}
+@keyframes in3{0%,40%{opacity:0;transform:translateY(8px)}46%,88%{opacity:1;transform:none}95%,100%{opacity:0;transform:none}}
+@keyframes in4{0%,56%{opacity:0;transform:translateY(8px)}62%,88%{opacity:1;transform:none}95%,100%{opacity:0;transform:none}}
+@keyframes in5{0%,70%{opacity:0;transform:translateY(8px)}76%,88%{opacity:1;transform:none}95%,100%{opacity:0;transform:none}}
+.bar{height:6px;border-radius:3px;background:#1E2621;transform-origin:left center;animation:grow var(--dur) infinite both}
+@keyframes grow{0%,30%{transform:scaleX(0)}44%,88%{transform:scaleX(1)}95%,100%{transform:scaleX(0)}}
+.laser{position:absolute;left:6%;right:6%;top:50%;height:2px;background:#F1C232;box-shadow:0 0 0 1px rgba(42,33,8,.25);animation:sweep 1.4s ease-in-out infinite alternate,early var(--dur) infinite both}
+@keyframes sweep{from{transform:translateY(-22px)}to{transform:translateY(22px)}}
+@keyframes early{0%,12%{opacity:1}16%,100%{opacity:0}}
+.flowdot{position:absolute;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:#1E2621;animation:flow 9s linear infinite}
+@keyframes flow{from{left:-3%}to{left:101%}}
+.rrow{position:absolute;left:0;right:0;height:56px;animation:reorder var(--dur) infinite both;animation-timing-function:cubic-bezier(.6,0,.3,1)}
+@keyframes reorder{0%,26%{transform:translateY(var(--a))}40%,86%{transform:translateY(var(--b))}96%,100%{transform:translateY(var(--a))}}
+.phA{animation:phA var(--dur) infinite both}
+.phB{animation:phB var(--dur) infinite both}
+.dimA{animation:dimA var(--dur) infinite both}
+.dimB{animation:dimB var(--dur) infinite both}
+@keyframes phA{0%,40%{opacity:1}46%,94%{opacity:0}100%{opacity:1}}
+@keyframes phB{0%,40%{opacity:0}46%,94%{opacity:1}100%{opacity:0}}
+@keyframes dimA{0%,28%{opacity:1}34%,88%{opacity:.35}95%,100%{opacity:1}}
+@keyframes dimB{0%,28%{opacity:.35}34%,88%{opacity:1}95%,100%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){
+  .scene *{animation:none!important}
+  .rrow{transform:translateY(var(--b))!important}
+  .phA{opacity:0!important}
+  .dimA{opacity:.35}
+  .laser{display:none}
+}
+</style>
+<style>
+[hidden]{display:none!important}
+.sortsw{display:flex;gap:4px;padding:3px;border:1.5px solid #1E2621;border-radius:999px}
+.sortsw button{font-family:inherit;font-size:.86rem;min-height:34px;padding:4px 14px;border:0;border-radius:999px;background:transparent;color:#1E2621;font-weight:700;cursor:pointer}
+.sortsw button[aria-pressed="true"]{background:#1E2621;color:#F9F4EA}
+.undo{background:none;border:0;padding:8px 4px;font:inherit;font-size:.86rem;color:#2B5D8C;font-weight:650;text-decoration:underline;cursor:pointer}
+:focus-visible{outline:3px solid #2B5D8C;outline-offset:2px}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="z">
+
+<header class="wrap" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-top: 22px; padding-bottom: 22px">
+  <a href="#inicio" style="display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 800; font-stretch: 80%; font-size: 1.25rem; letter-spacing: .01em" aria-label="Zeli Inventory, inicio">
+    <svg width="24" height="20" viewBox="0 0 22 18" fill="currentColor" aria-hidden="true"><rect x="0" width="3" height="18"></rect><rect x="5" width="1.5" height="18"></rect><rect x="8.5" width="3" height="18"></rect><rect x="13.5" width="1.5" height="18"></rect><rect x="17" width="5" height="18"></rect></svg>
+    <span>Zeli <span style="font-weight: 450">Inventory</span></span>
+  </a>
+  <nav aria-label="Secciones" style="display: flex; align-items: center; gap: 22px; flex-wrap: wrap">
+    <a href="#pasos" style="font-weight: 650; text-decoration: none">Cómo funciona</a>
+    <a href="#datos" style="font-weight: 650; text-decoration: none">Qué necesitamos</a>
+    <a class="btn" href="#piloto" style="min-height: 44px; padding: 10px 18px">Probar con un conteo real</a>
+  </nav>
+</header>
+
+<section id="inicio" class="wrap" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(460px, 100%), 1fr)); gap: 56px; align-items: center; padding-top: 40px; padding-bottom: 96px">
+  <div style="display: flex; flex-direction: column; gap: 26px">
+    <h1 class="display">Cada diferencia de inventario, explicada con su documento.</h1>
+    <p class="lede">Zeli acompaña tu conteo y la conciliación. Mientras cuentan, sugiere qué producto es cada código desconocido. Después, propone por qué el físico no cuadra con el sistema, empezando por lo que más dinero mueve. Tú revisas y apruebas cada cambio.</p>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap">
+      <a class="btn" href="#piloto">Probar con un conteo real</a>
+      <a class="btn ghost" href="#pasos">Ver cómo funciona</a>
+    </div>
+  </div>
+
+  <div class="card scene" style="--dur: 12s; padding: 0; overflow: hidden" role="img" aria-label="Ejemplo: cinco diferencias de inventario. Zeli propone una causa con su documento para cuatro de ellas; la quinta queda sin explicar para revisión humana.">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 18px 22px; border-bottom: 1.5px solid #1E2621">
+      <b style="font-stretch: 80%; font-size: 1.15rem">Diferencias del conteo</b>
+      <span class="small muted">Bodega principal</span>
+    </div>
+    <div style="display: flex; flex-direction: column">
+      <div style="padding: 14px 22px; border-bottom: 1px solid #D5C9B1; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; gap: 12px"><span style="font-weight: 650">Inversor solar 3 kW</span><b class="num pos" style="white-space: nowrap">+2 und</b></div>
+        <div class="a1" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap"><span class="tag">FAC-0045812</span><span class="small">Facturado, no despachado</span></div>
+      </div>
+      <div style="padding: 14px 22px; border-bottom: 1px solid #D5C9B1; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; gap: 12px"><span style="font-weight: 650">Panel solar 550 W</span><b class="num pos" style="white-space: nowrap">+6 und</b></div>
+        <div class="a2" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap"><span class="tag">REC-2231</span><span class="small">Recibido, no registrado</span></div>
+      </div>
+      <div style="padding: 14px 22px; border-bottom: 1px solid #D5C9B1; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; gap: 12px"><span style="font-weight: 650">Varilla corrugada ½" × 6 m</span><b class="num pos" style="white-space: nowrap">+40 und</b></div>
+        <div class="a3" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap"><span class="tag">FAC-0045790</span><span class="small">Venta registrada con otro código</span></div>
+      </div>
+      <div style="padding: 14px 22px; border-bottom: 1px solid #D5C9B1; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; gap: 12px"><span style="font-weight: 650">Taladro percutor 20V</span><b class="num pos" style="white-space: nowrap">+3 und</b></div>
+        <div class="a4" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap"><span class="tag">EXC-01</span><span class="small">Contado con el código de otro producto</span></div>
+      </div>
+      <div style="padding: 14px 22px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; gap: 12px"><span style="font-weight: 650">Batería de litio 48V</span><b class="num neg" style="white-space: nowrap">−1 und</b></div>
+        <div class="a5" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap"><span class="tag out">Sin documento</span><span class="small">Queda para tu revisión</span></div>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 22px; background: #1E2621; color: #F9F4EA">
+      <span class="small" style="font-weight: 650">Zeli propone. Tú apruebas.</span>
+      <span class="small mono" style="color: #F1C232">4 de 5 con causa</span>
+    </div>
+  </div>
+</section>
+
+<nav id="pasos" aria-label="Pasos del proceso" style="border-top: 1.5px solid #1E2621; border-bottom: 1.5px solid #1E2621; background: #F9F4EA">
+  <div class="wrap" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr)); gap: 0 20px">
+    <a class="navstep" href="#paso1"><b>01</b><span>Tu corte</span></a>
+    <a class="navstep" href="#paso2"><b>02</b><span>Durante el conteo</span></a>
+    <a class="navstep" href="#paso3"><b>03</b><span>Al cerrar el conteo</span></a>
+    <a class="navstep" href="#paso4"><b>04</b><span>Investigación</span></a>
+    <a class="navstep" href="#paso5"><b>05</b><span>Aprobación</span></a>
+  </div>
+</nav>
+
+<section id="paso1" class="wrap" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 56px; align-items: center; padding-top: 104px; padding-bottom: 104px">
+  <div style="display: flex; flex-direction: column; gap: 22px">
+    <p class="stepn">01</p>
+    <h2 class="h2">Partimos de tu corte.</h2>
+    <p class="body">Zeli toma los saldos y los documentos abiertos a la hora en que cerró el conteo: facturas sin despachar, recepciones sin registrar, traslados en curso. Es la base para explicar cada diferencia después.</p>
+    <dl class="who">
+      <dt><span class="lab zeli">Zeli</span></dt><dd>Registra qué estaba pendiente a esa hora.</dd>
+      <dt><span class="lab tu">Tú</span></dt><dd>Defines la hora del corte, como siempre.</dd>
+    </dl>
+  </div>
+  <div class="card scene" role="img" aria-label="Línea de tiempo del Kardex con la hora del corte. Zeli registra los saldos y los documentos pendientes a esa hora.">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+      <b style="font-stretch: 80%; font-size: 1.15rem">Kardex</b>
+      <span class="small muted">movimientos en el tiempo</span>
+    </div>
+    <div style="position: relative; height: 120px; margin: 22px 0 6px; overflow: hidden">
+      <div style="position: absolute; left: 0; right: 0; top: 50%; height: 3px; margin-top: -1.5px; background: #1E2621"></div>
+      <span class="flowdot" style="animation-delay: 0s"></span>
+      <span class="flowdot" style="animation-delay: -1.5s"></span>
+      <span class="flowdot" style="animation-delay: -3s"></span>
+      <span class="flowdot" style="animation-delay: -4.5s"></span>
+      <span class="flowdot" style="animation-delay: -6s"></span>
+      <span class="flowdot" style="animation-delay: -7.5s"></span>
+      <div style="position: absolute; top: 0; bottom: 0; left: 58%; right: 0; background: repeating-linear-gradient(135deg, rgba(239, 230, 212, .82) 0 6px, rgba(213, 201, 177, .82) 6px 10px)"></div>
+      <div style="position: absolute; top: 6px; bottom: 6px; left: 58%; width: 3px; background: #1E2621"></div>
+      <span class="small" style="position: absolute; top: 0; left: calc(58% + 10px); font-weight: 750">Corte, 6:00 p. m.</span>
+      <span class="small muted" style="position: absolute; bottom: 0; left: calc(58% + 10px); font-weight: 650">Después del corte</span>
+      <span class="small" style="position: absolute; bottom: 0; left: 0; font-weight: 650">Antes del corte</span>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px">
+      <span class="chip a1"><svg viewBox="0 0 16 16" fill="none" stroke="#2C7A4C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>Saldos por producto</span>
+      <span class="chip a2"><svg viewBox="0 0 16 16" fill="none" stroke="#2C7A4C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>Facturas sin despachar</span>
+      <span class="chip a3"><svg viewBox="0 0 16 16" fill="none" stroke="#2C7A4C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>Recepciones sin registrar</span>
+      <span class="chip a4"><svg viewBox="0 0 16 16" fill="none" stroke="#2C7A4C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>Traslados y devoluciones</span>
+    </div>
+    <p class="a5 small" style="margin: 16px 0 0; font-weight: 700">Pendientes registrados. Listo para comparar con el conteo.</p>
+  </div>
+</section>
+
+<section id="paso2" style="border-top: 1.5px solid #1E2621">
+<div class="wrap" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 56px; align-items: center; padding-top: 104px; padding-bottom: 104px">
+  <div style="display: flex; flex-direction: column; gap: 22px">
+    <p class="stepn">02</p>
+    <h2 class="h2">Durante el conteo, un código desconocido no detiene al equipo.</h2>
+    <p class="body">El equipo cuenta con lo que ya usa: PDT, scanner o teléfono. Si un código no está en la base, el contador deja foto y cantidad y sigue. Zeli sugiere a qué producto corresponde, y si es el código de una caja, cuántas unidades trae.</p>
+    <dl class="who">
+      <dt><span class="lab zeli">Zeli</span></dt><dd>Sugiere el producto en orden de probabilidad y explica por qué.</dd>
+      <dt><span class="lab tu">Tú</span></dt><dd>Confirmas. El código queda aprendido para todo el equipo.</dd>
+    </dl>
+    <p class="small muted" style="margin: 0; max-width: 52ch">Si cuentan con su propio sistema, este paso es opcional: lo que no se resolvió en el conteo aparece después como causa posible en la investigación.</p>
+  </div>
+  <div class="card scene" role="img" aria-label="Un código no encontrado durante el conteo. Zeli sugiere dos productos ordenados por coincidencia, el supervisor confirma el primero y el código queda aprendido.">
+    <div style="position: relative; display: flex; align-items: center; gap: 16px; padding: 14px; border: 1.5px dashed #B9AD95; border-radius: 12px; background: #EFE6D4">
+      <svg width="132" height="56" viewBox="0 0 132 56" fill="#1E2621" aria-hidden="true"><rect x="0" width="3" height="56"></rect><rect x="5" width="1.5" height="56"></rect><rect x="9" width="4" height="56"></rect><rect x="15" width="1.5" height="56"></rect><rect x="19" width="2" height="56"></rect><rect x="24" width="4" height="56"></rect><rect x="30" width="1.5" height="56"></rect><rect x="34" width="3" height="56"></rect><rect x="40" width="1.5" height="56"></rect><rect x="44" width="2" height="56"></rect><rect x="49" width="4" height="56"></rect><rect x="55" width="1.5" height="56"></rect><rect x="59" width="3" height="56"></rect><rect x="65" width="2" height="56"></rect><rect x="70" width="1.5" height="56"></rect><rect x="74" width="4" height="56"></rect><rect x="80" width="1.5" height="56"></rect><rect x="84" width="3" height="56"></rect><rect x="90" width="2" height="56"></rect><rect x="95" width="1.5" height="56"></rect><rect x="99" width="4" height="56"></rect><rect x="105" width="1.5" height="56"></rect><rect x="109" width="3" height="56"></rect><rect x="115" width="2" height="56"></rect><rect x="120" width="1.5" height="56"></rect><rect x="124" width="3" height="56"></rect><rect x="129" width="3" height="56"></rect></svg>
+      <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+        <span class="mono" style="font-size: .95rem">7412345100148</span>
+        <span class="small muted">“Taladro 20V kit 2 baterías”, 3 cajas</span>
+      </div>
+      <span class="laser" aria-hidden="true"></span>
+    </div>
+    <div class="a1" style="margin-top: 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap"><span class="tag">No está en la base</span><span class="small">Foto y cantidad guardadas. El contador sigue.</span></div>
+    <div class="a2" style="margin-top: 18px; display: flex; flex-direction: column; gap: 8px">
+      <span class="small" style="font-weight: 750">Sugerencias de Zeli</span>
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; padding: 12px 14px; border: 1.5px solid #1E2621; border-radius: 12px; background: #F9F4EA">
+        <span><b>Taladro percutor 20V, kit 2 baterías</b><br><span class="small mono muted">HER-1002</span></span>
+        <span class="status st-ok">Alta</span>
+        <span class="small muted" style="grid-column: 1 / -1">La etiqueta dice “kit 2 baterías” y el código es del mismo fabricante.</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; padding: 12px 14px; border: 1.5px solid #D5C9B1; border-radius: 12px">
+        <span><b style="font-weight: 650">Taladro percutor 20V inalámbrico</b><br><span class="small mono muted">HER-1001</span></span>
+        <span class="status st-merma">Media</span>
+      </div>
+    </div>
+    <div class="a3" style="margin-top: 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+      <span class="btn" style="min-height: 40px; padding: 8px 16px; font-size: .92rem; cursor: default"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#F1C232" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>Confirmado por el supervisor</span>
+    </div>
+    <p class="a4 small" style="margin: 14px 0 0; font-weight: 700">Aprendido: la próxima vez que alguien escanee este código, se reconoce solo.</p>
+  </div>
+</div>
+</section>
+
+<section id="paso3" style="border-top: 1.5px solid #1E2621">
+<div class="wrap" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 56px; align-items: center; padding-top: 104px; padding-bottom: 104px">
+  <div style="display: flex; flex-direction: column; gap: 22px">
+    <p class="stepn">03</p>
+    <h2 class="h2">Al cerrar, las diferencias se ordenan por dinero, no por cantidad.</h2>
+    <p class="body">Una unidad de un equipo de alto valor pesa más que decenas de unidades de consumo masivo. Zeli compara el conteo con los saldos al corte y pone arriba lo que más impacta, con su clase ABC.</p>
+    <dl class="who">
+      <dt><span class="lab zeli">Zeli</span></dt><dd>Ordena por valor y propone como merma lo que está dentro de tu tolerancia.</dd>
+      <dt><span class="lab tu">Tú</span></dt><dd>Defines la tolerancia de merma.</dd>
+    </dl>
+  </div>
+  <div class="card scene" role="img" aria-label="Seis diferencias. Ordenadas por unidades, la batería de 1 unidad queda al final. Ordenadas por valor, la misma batería pasa al primer lugar, y el maní y las galletas bajan como merma normal.">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px">
+      <b style="font-stretch: 80%; font-size: 1.15rem">Diferencias</b>
+      <div role="group" aria-label="Ordenar diferencias" class="sortsw">
+        <button type="button" id="sortUnits" aria-pressed="true">Por unidades</button>
+        <button type="button" id="sortValue" aria-pressed="false">Por valor</button>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; padding: 0 8px 6px; border-bottom: 1.5px solid #1E2621" class="small muted">
+      <span></span><span>Producto</span><span style="text-align: right">Unidades</span><span style="text-align: right">Valor</span>
+    </div>
+    <div data-sort="units" style="display: flex; flex-direction: column">
+        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc A">A</span><span style="font-weight: 650">Breaker 2 polos 40 A</span><b class="num pos" style="text-align: right">+15</b><span class="num muted" style="text-align: right">+$276</span></div>
+        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc C">C</span><span style="font-weight: 650">Maní salado 200 g</span><b class="num neg" style="text-align: right">−14</b><span class="num muted" style="text-align: right">−$26</span></div>
+        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc C">C</span><span style="font-weight: 650">Galletas de soda</span><b class="num neg" style="text-align: right">−8</b><span class="num muted" style="text-align: right">−$26</span></div>
+        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc A">A</span><span style="font-weight: 650">Inversor solar 3 kW</span><b class="num pos" style="text-align: right">+2</b><span class="num muted" style="text-align: right">+$1,224</span></div>
+        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc A">A</span><span style="font-weight: 650">Rotomartillo SDS-plus</span><b class="num neg" style="text-align: right">−2</b><span class="num muted" style="text-align: right">−$476</span></div>
+        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1; background: #FBEBB5"><span class="abc A">A</span><span style="font-weight: 650">Batería de litio 48V</span><b class="num neg" style="text-align: right">−1</b><span class="num muted" style="text-align: right">−$1,450</span></div>
+        <p class="small" style="margin: 14px 0 0; font-weight: 650">Por unidades, la batería queda al final: solo falta una.</p>
+      </div>
+    <div data-sort="value" hidden style="display: flex; flex-direction: column">
+        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1; background: #FBEBB5"><span class="abc A">A</span><span style="font-weight: 650">Batería de litio 48V</span><span class="num muted" style="text-align: right">−1</span><b class="num neg" style="text-align: right">−$1,450</b></div>
+        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc A">A</span><span style="font-weight: 650">Inversor solar 3 kW</span><span class="num muted" style="text-align: right">+2</span><b class="num pos" style="text-align: right">+$1,224</b></div>
+        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc A">A</span><span style="font-weight: 650">Rotomartillo SDS-plus</span><span class="num muted" style="text-align: right">−2</span><b class="num neg" style="text-align: right">−$476</b></div>
+        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc A">A</span><span style="font-weight: 650">Breaker 2 polos 40 A</span><span class="num muted" style="text-align: right">+15</span><b class="num pos" style="text-align: right">+$276</b></div>
+        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc C">C</span><span style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-weight: 650">Maní salado 200 g <span class="status st-merma">Merma normal</span></span><span class="num muted" style="text-align: right">−14</span><b class="num neg" style="text-align: right">−$26</b></div>
+        <div style="display: grid; grid-template-columns: 22px 1fr 56px 84px; gap: 12px; align-items: center; min-height: 50px; padding: 0 8px; border-bottom: 1px solid #D5C9B1"><span class="abc C">C</span><span style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-weight: 650">Galletas de soda <span class="status st-merma">Merma normal</span></span><span class="num muted" style="text-align: right">−8</span><b class="num neg" style="text-align: right">−$26</b></div>
+        <p class="small" style="margin: 14px 0 0; font-weight: 650">Por valor, la misma batería es la diferencia más cara. Va primero.</p>
+      </div>
+  </div>
+</div>
+</section>
+
+<section id="paso4" style="border-top: 1.5px solid #1E2621">
+<div class="wrap" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 56px; align-items: center; padding-top: 104px; padding-bottom: 104px">
+  <div style="display: flex; flex-direction: column; gap: 22px">
+    <p class="stepn">04</p>
+    <h2 class="h2">En la investigación, cada causa probable llega con su documento.</h2>
+    <p class="body">Para cada diferencia, Zeli cruza el Kardex, las facturas sin despachar, las recepciones sin registrar y lo que quedó pendiente del conteo. Te muestra las causas en orden: cuánto explica cada una, con qué documento, y qué hacer para resolverla.</p>
+    <dl class="who">
+      <dt><span class="lab zeli">Zeli</span></dt><dd>Propone causas y resoluciones, ordenadas por cuánto explican y qué tan seguras son.</dd>
+      <dt><span class="lab tu">Tú</span></dt><dd>Aceptas o descartas cada causa. Lo que no tiene documento queda para tu revisión.</dd>
+    </dl>
+    <p class="small muted" style="margin: 0; max-width: 52ch">Mientras más completa la documentación, mejores las sugerencias. Lo que nunca entró al sistema, como una guía en papel, Zeli no lo ve: te dice qué documento buscar.</p>
+  </div>
+  <div class="card scene" role="img" aria-label="Investigación del inversor solar: sobran 2 unidades. Zeli revisa los documentos, propone tres causas ordenadas, la primera es una factura no despachada que explica las 2 unidades, sugiere despachar o anular la factura, y la diferencia queda explicada.">
+    <div style="display: flex; gap: 10px; align-items: flex-start">
+      <span class="abc A" style="margin-top: 3px">A</span>
+      <div style="flex: 1; min-width: 0"><b style="font-stretch: 80%; font-size: 1.25rem">Inversor solar 3 kW</b><br><span class="small mono muted">ELE-2001</span></div>
+      <div style="text-align: right"><b class="num pos" style="font-stretch: 78%; font-size: 1.3rem">+$1,224</b><br><span class="small muted num">Sistema 6, físico 8</span></div>
+    </div>
+    <div class="a1" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px">
+      <span class="small muted" style="width: 100%; font-weight: 650">Documentos revisados</span>
+      <span class="chip">Kardex</span><span class="chip">Facturas</span><span class="chip">Recepciones</span><span class="chip">Traslados</span>
+    </div>
+    <div class="a2" style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px">
+      <div style="padding: 12px 14px; border: 1.5px solid #1E2621; border-radius: 12px; background: #F9F4EA; display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; justify-content: space-between; gap: 10px; align-items: baseline"><b>1. Facturado, no despachado</b><b class="num pos">explica +2</b></div>
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap"><span class="tag">FAC-0045812</span><span class="small muted">El Kardex ya lo descontó; el cliente aún no retira.</span></div>
+        <div style="height: 6px; border-radius: 3px; background: #E2D8C4; overflow: hidden"><div class="bar" style="width: 100%"></div></div>
+      </div>
+      <div style="padding: 10px 14px; border: 1.5px solid #D5C9B1; border-radius: 12px; display: flex; justify-content: space-between; gap: 10px; color: #5B655D">
+        <span><b style="font-weight: 650">2. Recibido, no registrado</b><br><span class="small">Hay una recepción pendiente, pero es de paneles.</span></span><span class="small" style="font-weight: 700; white-space: nowrap">No aplica</span>
+      </div>
+      <div style="padding: 10px 14px; border: 1.5px solid #D5C9B1; border-radius: 12px; display: flex; justify-content: space-between; gap: 10px; color: #5B655D">
+        <span><b style="font-weight: 650">3. Error en el Kardex</b><br><span class="small">Sin movimientos duplicados ni unidades distintas.</span></span><span class="small" style="font-weight: 700; white-space: nowrap">No aplica</span>
+      </div>
+    </div>
+    <div class="a4" style="margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: #1E2621; color: #F9F4EA">
+      <span class="small" style="color: #F1C232; font-weight: 750">Resolución sugerida</span>
+      <p style="margin: 2px 0 0; font-size: .98rem">Despachar o anular la factura FAC-0045812. No hace falta ajustar el inventario.</p>
+    </div>
+    <div class="a5" style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap">
+      <span class="small num" style="font-weight: 650">+2 de diferencia, −2 explicadas: 0 sin explicar</span>
+      <span class="status st-ok">Explicada</span>
+    </div>
+  </div>
+</div>
+</section>
+
+<section id="paso5" style="border-top: 1.5px solid #1E2621">
+<div class="wrap" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 56px; align-items: center; padding-top: 104px; padding-bottom: 104px">
+  <div style="display: flex; flex-direction: column; gap: 22px">
+    <p class="stepn">05</p>
+    <h2 class="h2">En la aprobación, nada cambia en tu sistema sin tu firma.</h2>
+    <p class="body">Zeli te entrega una resolución sugerida por cada diferencia. La mayoría se corrige completando un documento o el Kardex, sin tocar el inventario. Solo lo que queda se ajusta, y solo si tú lo apruebas. Tu ERP sigue siendo el sistema oficial.</p>
+    <dl class="who">
+      <dt><span class="lab zeli">Zeli</span></dt><dd>Sugiere una resolución por diferencia y prepara el archivo de ajuste.</dd>
+      <dt><span class="lab tu">Tú</span></dt><dd>Apruebas, rechazas o mandas a seguir investigando.</dd>
+    </dl>
+  </div>
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+      <b style="font-stretch: 80%; font-size: 1.15rem">Resoluciones sugeridas</b>
+      <span class="small muted">Pruébalo</span>
+    </div>
+    <div style="margin-top: 12px; border-top: 1.5px solid #1E2621">
+      <div class="res" data-id="inv" data-adj="0" data-doc="1" style="display: flex; flex-direction: column; gap: 4px; padding: 12px 0; border-bottom: 1px solid #D5C9B1">
+          <div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline"><b>Inversor solar 3 kW, +2 und</b><span class="num small" style="font-weight: 700; white-space: nowrap">+$1,224.00</span></div>
+          <span style="font-size: .95rem">Despachar o anular la factura FAC-0045812.</span>
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px">
+            <span class="small muted">No toca el inventario</span>
+            <div data-show="pending" style="display: flex; gap: 6px">
+              <button class="btn" type="button" data-act="ok" style="min-height: 44px; padding: 6px 16px; font-size: .88rem">Aprobar</button>
+              <button class="btn ghost" type="button" data-act="no" style="min-height: 44px; padding: 6px 16px; font-size: .88rem">Rechazar</button>
+            </div>
+            <div data-show="ok" hidden style="display: flex; gap: 10px; align-items: center"><span class="status st-ok">Aprobada</span><button class="undo" type="button" data-act="undo">Deshacer</button></div>
+            <div data-show="no" hidden style="display: flex; gap: 10px; align-items: center"><span class="status st-merma">Rechazada, vuelve a investigación</span><button class="undo" type="button" data-act="undo">Deshacer</button></div>
+          </div>
+        </div>
+      <div class="res" data-id="pan" data-adj="0" data-doc="1" style="display: flex; flex-direction: column; gap: 4px; padding: 12px 0; border-bottom: 1px solid #D5C9B1">
+          <div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline"><b>Panel solar 550 W, +6 und</b><span class="num small" style="font-weight: 700; white-space: nowrap">+$852.00</span></div>
+          <span style="font-size: .95rem">Registrar la recepción REC-2231.</span>
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px">
+            <span class="small muted">No toca el inventario</span>
+            <div data-show="pending" style="display: flex; gap: 6px">
+              <button class="btn" type="button" data-act="ok" style="min-height: 44px; padding: 6px 16px; font-size: .88rem">Aprobar</button>
+              <button class="btn ghost" type="button" data-act="no" style="min-height: 44px; padding: 6px 16px; font-size: .88rem">Rechazar</button>
+            </div>
+            <div data-show="ok" hidden style="display: flex; gap: 10px; align-items: center"><span class="status st-ok">Aprobada</span><button class="undo" type="button" data-act="undo">Deshacer</button></div>
+            <div data-show="no" hidden style="display: flex; gap: 10px; align-items: center"><span class="status st-merma">Rechazada, vuelve a investigación</span><button class="undo" type="button" data-act="undo">Deshacer</button></div>
+          </div>
+        </div>
+      <div class="res" data-id="var" data-adj="0" data-doc="1" style="display: flex; flex-direction: column; gap: 4px; padding: 12px 0; border-bottom: 1px solid #D5C9B1">
+          <div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline"><b>Varilla ½" y ⅜", +40 / −40 und</b><span class="num small" style="font-weight: 700; white-space: nowrap">+$168.00</span></div>
+          <span style="font-size: .95rem">Corregir en el Kardex la venta registrada con el código equivocado.</span>
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px">
+            <span class="small muted">No toca el inventario</span>
+            <div data-show="pending" style="display: flex; gap: 6px">
+              <button class="btn" type="button" data-act="ok" style="min-height: 44px; padding: 6px 16px; font-size: .88rem">Aprobar</button>
+              <button class="btn ghost" type="button" data-act="no" style="min-height: 44px; padding: 6px 16px; font-size: .88rem">Rechazar</button>
+            </div>
+            <div data-show="ok" hidden style="display: flex; gap: 10px; align-items: center"><span class="status st-ok">Aprobada</span><button class="undo" type="button" data-act="undo">Deshacer</button></div>
+            <div data-show="no" hidden style="display: flex; gap: 10px; align-items: center"><span class="status st-merma">Rechazada, vuelve a investigación</span><button class="undo" type="button" data-act="undo">Deshacer</button></div>
+          </div>
+        </div>
+      <div class="res" data-id="mer" data-adj="-51.5" data-doc="0" style="display: flex; flex-direction: column; gap: 4px; padding: 12px 0; border-bottom: 1px solid #D5C9B1">
+          <div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline"><b>Maní y galletas, −22 und</b><span class="num small" style="font-weight: 700; white-space: nowrap">−$51.50</span></div>
+          <span style="font-size: .95rem">Ajustar como merma dentro de tu tolerancia.</span>
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px">
+            <span class="small muted">Ajuste de inventario</span>
+            <div data-show="pending" style="display: flex; gap: 6px">
+              <button class="btn" type="button" data-act="ok" style="min-height: 44px; padding: 6px 16px; font-size: .88rem">Aprobar</button>
+              <button class="btn ghost" type="button" data-act="no" style="min-height: 44px; padding: 6px 16px; font-size: .88rem">Rechazar</button>
+            </div>
+            <div data-show="ok" hidden style="display: flex; gap: 10px; align-items: center"><span class="status st-ok">Aprobada</span><button class="undo" type="button" data-act="undo">Deshacer</button></div>
+            <div data-show="no" hidden style="display: flex; gap: 10px; align-items: center"><span class="status st-merma">Rechazada, vuelve a investigación</span><button class="undo" type="button" data-act="undo">Deshacer</button></div>
+          </div>
+        </div>
+      
+      <div id="bat" style="display: flex; flex-direction: column; gap: 4px; padding: 12px 0; border-bottom: 1px solid #D5C9B1">
+        <div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline"><b>Batería de litio 48V, −1 und</b><span class="num small" style="font-weight: 700; white-space: nowrap">−$1,450.00</span></div>
+        <span style="font-size: .95rem">Sin documento que la explique. Zeli no sugiere un ajuste: decide tú.</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px">
+          <span class="small muted">Sin explicar</span>
+          <div data-show="pending" style="display: flex; gap: 6px; flex-wrap: wrap">
+              <button class="btn" type="button" data-act="inv" style="min-height: 44px; padding: 6px 16px; font-size: .88rem">Seguir investigando</button>
+              <button class="btn ghost" type="button" data-act="adj" style="min-height: 44px; padding: 6px 16px; font-size: .88rem">Ajustar</button>
+            </div>
+            <div data-show="inv" hidden style="display: flex; gap: 10px; align-items: center"><span class="status st-merma">Sigue en investigación</span><button class="undo" type="button" data-act="undo">Deshacer</button></div>
+            <div data-show="adj" hidden style="display: flex; gap: 10px; align-items: center"><span class="status st-ok">Ajuste aprobado</span><button class="undo" type="button" data-act="undo">Deshacer</button></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top: 16px; padding: 16px; border-radius: 12px; background: #1E2621; color: #F9F4EA; display: flex; flex-direction: column; gap: 6px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap">
+        <span style="font-weight: 650">Ajuste al inventario</span>
+        <b class="num" style="font-size: 1.6rem; font-stretch: 75%; color: #F1C232"><span id="adjText">$0.00</span></b>
+      </div>
+      <span class="small" style="color: #E2D8C4"><span id="docText">0 de 3 se corrigen con un documento o en el Kardex, sin tocar el inventario.</span></span>
+      <span class="small" style="font-weight: 700"><span id="statusText">Faltan 5 decisiones.</span></span>
+    </div>
+  </div>
+</div>
+</section>
+
+<section id="datos" style="border-top: 1.5px solid #1E2621; background: #F9F4EA">
+<div class="wrap" style="padding-top: 104px; padding-bottom: 104px; display: flex; flex-direction: column; gap: 40px">
+  <div style="display: flex; flex-direction: column; gap: 18px; max-width: 760px">
+    <h2 class="h2">Lo que Zeli necesita de tu sistema</h2>
+    <p class="body">Reportes que la mayoría de los ERP ya exportan a Excel, a la fecha del conteo. Mientras más completos, más diferencias se explican.</p>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 0 40px; border-top: 1.5px solid #1E2621">
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 18px 0; border-bottom: 1px solid #D5C9B1"><span class="tag" style="align-self: flex-start">Conteo</span><span>SKU y cantidad contada, con la hora exacta del corte.</span></div>
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 18px 0; border-bottom: 1px solid #D5C9B1"><span class="tag" style="align-self: flex-start">Kardex</span><span>Movimientos por producto, desde unas semanas antes hasta unos días después del corte.</span></div>
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 18px 0; border-bottom: 1px solid #D5C9B1"><span class="tag" style="align-self: flex-start">Ventas abiertas</span><span>Facturas con su estado de despacho.</span></div>
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 18px 0; border-bottom: 1px solid #D5C9B1"><span class="tag" style="align-self: flex-start">Compras abiertas</span><span>Órdenes de compra, facturas de proveedor y recepciones.</span></div>
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 18px 0; border-bottom: 1px solid #D5C9B1"><span class="tag" style="align-self: flex-start">Traslados</span><span>Traslados entre sucursales, devoluciones y notas de crédito.</span></div>
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 18px 0; border-bottom: 1px solid #D5C9B1"><span class="tag" style="align-self: flex-start">Maestro de productos</span><span>Unidades, factores de conversión, códigos de barras y costo.</span></div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 24px">
+    <div style="display: flex; flex-direction: column; gap: 6px"><b style="font-size: 1.1rem">No ajusta tu inventario.</b><span class="muted">Propone. Cada cambio lo aprueba una persona.</span></div>
+    <div style="display: flex; flex-direction: column; gap: 6px"><b style="font-size: 1.1rem">No reemplaza tu ERP.</b><span class="muted">Trabaja con lo que tu sistema ya exporta.</span></div>
+    <div style="display: flex; flex-direction: column; gap: 6px"><b style="font-size: 1.1rem">No ve lo que no está registrado.</b><span class="muted">Si un documento quedó en papel, te dice cuál buscar.</span></div>
+  </div>
+</div>
+</section>
+
+<section id="piloto" style="background: #1E2621; color: #F9F4EA">
+<div class="wrap" style="padding-top: 104px; padding-bottom: 104px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 40px; align-items: end">
+  <div style="display: flex; flex-direction: column; gap: 20px">
+    <h2 class="display" style="color: #F9F4EA">Probémoslo con tu último conteo.</h2>
+    <p class="lede" style="color: #E2D8C4">Envíanos los reportes de un conteo reciente. Te devolvemos qué diferencias se explican, con qué documento, y cuáles quedan para tu revisión.</p>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 14px; align-items: flex-start">
+    <a class="btn light" href="https://zeli.lat">Hablemos en zeli.lat</a>
+    <span class="small" style="color: #C9BFA9">Zeli Technologies, Panamá</span>
+  </div>
+</div>
+</section>
+
+<footer style="background: #1E2621; color: #C9BFA9; border-top: 1px solid #3A443D">
+  <div class="wrap small" style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 18px; padding-bottom: 22px">
+    <span>Zeli Inventory</span>
+    <span>Los productos, documentos y montos de esta página son ejemplos ficticios.</span>
+  </div>
+</footer>
+
+</div>
+<script>
+(function(){
+  // step 3: units / value switch, auto-swaps every 5 s until someone clicks
+  var bu=document.getElementById('sortUnits'), bv=document.getElementById('sortValue');
+  var lu=document.querySelector('[data-sort="units"]'), lv=document.querySelector('[data-sort="value"]');
+  var byValue=false, manual=false;
+  function setSort(v){ byValue=v; lu.hidden=v; lv.hidden=!v; bu.setAttribute('aria-pressed',String(!v)); bv.setAttribute('aria-pressed',String(v)); }
+  bu.addEventListener('click',function(){ manual=true; setSort(false); });
+  bv.addEventListener('click',function(){ manual=true; setSort(true); });
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reduce) setInterval(function(){ if(!manual) setSort(!byValue); },5000); else setSort(true);
+
+  // step 5: approve / reject each suggested resolution
+  var dec={}, bat=null;
+  function show(el,state){ el.querySelectorAll('[data-show]').forEach(function(n){ n.hidden = n.getAttribute('data-show')!==state; }); }
+  function money(n){ return (n<0?'\u2212':'')+'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function summary(){
+    var adj=0, docs=0, pending=0;
+    document.querySelectorAll('.res').forEach(function(r){
+      var d=dec[r.dataset.id];
+      if(!d) pending++;
+      if(d==='ok'){ adj+=parseFloat(r.dataset.adj); if(r.dataset.doc==='1') docs++; }
+    });
+    if(!bat) pending++;
+    if(bat==='adj') adj+=-1450;
+    document.getElementById('adjText').textContent=money(adj);
+    document.getElementById('docText').textContent=docs+' de 3 se corrigen con un documento o en el Kardex, sin tocar el inventario.';
+    document.getElementById('statusText').textContent= pending ? (pending===1?'Falta 1 decisión.':'Faltan '+pending+' decisiones.') : 'Listo para cargar en tu ERP.';
+  }
+  document.querySelectorAll('.res').forEach(function(r){
+    r.addEventListener('click',function(e){
+      var b=e.target.closest('[data-act]'); if(!b) return;
+      var a=b.dataset.act;
+      if(a==='undo') delete dec[r.dataset.id]; else dec[r.dataset.id]=a;
+      show(r, dec[r.dataset.id]||'pending'); summary();
+    });
+  });
+  var be=document.getElementById('bat');
+  be.addEventListener('click',function(e){
+    var b=e.target.closest('[data-act]'); if(!b) return;
+    bat = b.dataset.act==='undo' ? null : b.dataset.act;
+    show(be, bat||'pending'); summary();
+  });
+  summary();
+})();
+</script>
+</body>
 </html>
