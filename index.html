@@ -108,7 +108,9 @@ html{scroll-behavior:smooth}
 .drow{min-height:50px;padding:0 8px;border-bottom:1px solid #D5C9B1}
 .drow.mark{background:#FBEBB5}
 .dhead>:nth-child(n+3),.drow>:nth-child(n+3){text-align:right}
-.btn-short{display:none}
+.sortstage{display:grid}
+.sortstage>[data-sort]{grid-area:1/1}
+.sortstage>[data-sort][hidden]{display:flex!important;visibility:hidden;pointer-events:none}
 .split>*{min-width:0}
 section,nav#pasos{scroll-margin-top:12px}
 
@@ -124,11 +126,7 @@ section,nav#pasos{scroll-margin-top:12px}
     flex-wrap:nowrap!important;
     border-bottom:1px solid #D5C9B1;
   }
-  .site-nav{gap:0!important}
-  .site-nav a:not(.btn){display:none}
-  .site-nav .btn{min-height:40px;padding:8px 14px;font-size:.92rem}
-  .site-nav .btn-long{display:none}
-  .site-nav .btn-short{display:inline}
+  .site-nav{display:none!important}
   .hero{padding-top:20px!important;padding-bottom:40px!important;gap:28px!important}
   .y-pad{padding-top:48px!important;padding-bottom:48px!important}
   .split{gap:28px!important}
@@ -183,7 +181,7 @@ section,nav#pasos{scroll-margin-top:12px}
   <nav class="site-nav" aria-label="Secciones" style="display: flex; align-items: center; gap: 22px; flex-wrap: wrap">
     <a href="#pasos" style="font-weight: 650; text-decoration: none">Cómo funciona</a>
     <a href="#datos" style="font-weight: 650; text-decoration: none">Qué necesitamos</a>
-    <a class="btn" href="#piloto" style="min-height: 44px; padding: 10px 18px"><span class="btn-long">Probar con un conteo real</span><span class="btn-short">Probar</span></a>
+    <a class="btn" href="#piloto" style="min-height: 44px; padding: 10px 18px">Probar con un conteo real</a>
   </nav>
 </header>
 
@@ -344,6 +342,7 @@ section,nav#pasos{scroll-margin-top:12px}
     <div class="dhead small muted">
       <span></span><span>Producto</span><span style="text-align: right">Unidades</span><span style="text-align: right">Valor</span>
     </div>
+    <div class="sortstage">
     <div data-sort="units" style="display: flex; flex-direction: column">
         <div class="drow"><span class="abc A">A</span><span style="font-weight: 650">Breaker 2 polos 40 A</span><b class="num pos" style="text-align: right">+15</b><span class="num muted" style="text-align: right">+$276</span></div>
         <div class="drow"><span class="abc C">C</span><span style="font-weight: 650">Maní salado 200 g</span><b class="num neg" style="text-align: right">−14</b><span class="num muted" style="text-align: right">−$26</span></div>
@@ -362,6 +361,7 @@ section,nav#pasos{scroll-margin-top:12px}
         <div class="drow"><span class="abc C">C</span><span style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-weight: 650">Galletas de soda <span class="status st-merma">Merma normal</span></span><span class="num muted" style="text-align: right">−8</span><b class="num neg" style="text-align: right">−$26</b></div>
         <p class="small" style="margin: 14px 0 0; font-weight: 650">Por valor, la misma batería es la diferencia más cara. Va primero.</p>
       </div>
+    </div>
   </div>
 </div>
 </section>
