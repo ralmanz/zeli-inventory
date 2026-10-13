@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zeli Inventory: cierre de conteo</title>
+<meta name="description" content="Zeli explica cada diferencia de tu conteo de inventario con su documento. Tú propones, quien aprueba firma, y sale el archivo de ajuste.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Zeli Inventory: cada diferencia de inventario, explicada con su documento">
+<meta property="og:url" content="https://inventory.lab.zeli.lat/">
+<meta name="theme-color" content="#EFE6D4">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 18'%3E%3Crect width='22' height='18' rx='3' fill='%23F1C232'/%3E%3Cg fill='%231E2621'%3E%3Crect x='3' y='3' width='2.5' height='12'/%3E%3Crect x='7' y='3' width='1.2' height='12'/%3E%3Crect x='9.8' y='3' width='2.5' height='12'/%3E%3Crect x='14' y='3' width='1.2' height='12'/%3E%3Crect x='16.6' y='3' width='2.4' height='12'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1E2621;--cream:#EFE6D4;--paper:#F9F4EA;--sand:#E2D8C4;--rule:#D5C9B1;--rule2:#B9AD95;--muted:#5B655D;--yellow:#F1C232;--yellow-ink:#2A2108;--yellow-soft:#FBEBB5;--blue:#2B5D8C;--blue-soft:#DDE6EF;--green:#2C7A4C;--green-soft:#DCEBDC;--red:#B0382B;--red-soft:#F3DCD6}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--ink)}a:hover{color:var(--blue)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2.5px solid var(--blue);outline-offset:2px}
+.mono{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;font-weight:500}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1280px;margin:0 auto;padding-left:24px;padding-right:24px}
+.muted{color:var(--muted)}
+.small{font-size:.87rem}
+.xs{font-size:.8rem}
+.neg{color:var(--red)}.pos{color:var(--green)}
+h1.display{font-size:clamp(2.4rem,5.2vw,3.4rem);font-weight:800;font-stretch:68%;line-height:.98;letter-spacing:-.01em;margin:0}
+.h2{font-size:1.55rem;font-weight:800;font-stretch:72%;line-height:1.05;margin:0}
+.h3{font-size:1.25rem;font-weight:800;font-stretch:72%;line-height:1.1;margin:0}
+.h2 .sub,.h3 .sub{font-size:.95rem;font-weight:400;font-stretch:100%;color:var(--muted)}
+.lede{font-size:1.02rem;color:var(--muted);max-width:62ch;margin:10px 0 0}
+.card{background:var(--paper);border:1.5px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink)}
+.card.flat{box-shadow:none}
+.card.dash{border-style:dashed;border-color:var(--rule2);box-shadow:none}
+.card.dark{background:var(--ink);color:var(--cream);box-shadow:4px 4px 0 var(--rule2)}
+.card.dark a{color:var(--cream)}
+.pad{padding:22px}.pad-s{padding:16px 18px}
+.stack{display:flex;flex-direction:column}
+.g4{gap:4px}.g6{gap:6px}.g8{gap:8px}.g10{gap:10px}.g12{gap:12px}.g16{gap:16px}.g20{gap:20px}.g24{gap:24px}.g28{gap:28px}
+.row{display:flex;flex-wrap:wrap;align-items:center}
+.between{justify-content:space-between}
+.start{align-items:flex-start}
+.end{align-items:flex-end}
+.grid{display:grid;gap:20px}
+.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.c4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.main-side{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.main-side>.main{flex:999 1 620px;min-width:0;display:flex;flex-direction:column;gap:24px}
+.main-side>.side{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:20px}
+@media (max-width:860px){.c3,.c4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.c2,.c3,.c4{grid-template-columns:minmax(0,1fr)}.wrap{padding-left:16px;padding-right:16px}.pad{padding:18px}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 20px;border-radius:999px;border:1.5px solid var(--ink);background:var(--ink);color:var(--cream);font-weight:700;text-decoration:none;cursor:pointer;font-size:.98rem;line-height:1.1;text-align:center}
+.btn:hover{background:var(--blue);border-color:var(--blue);color:#F9F4EA}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover{background:var(--ink);color:var(--cream)}
+.btn.yellow{background:var(--yellow);border-color:var(--yellow);color:var(--yellow-ink)}
+.btn.yellow:hover{background:var(--paper);border-color:var(--paper);color:var(--ink)}
+.btn.ghost-light{background:transparent;border-color:var(--cream);color:var(--cream)}
+.btn.ghost-light:hover{background:var(--cream);color:var(--ink)}
+.btn.sm{min-height:38px;padding:8px 14px;font-size:.88rem}
+.btn.block{display:flex;width:100%}
+.btn[disabled],.btn[aria-disabled=true]{background:var(--sand);border-color:var(--rule2);color:var(--muted);cursor:not-allowed}
+.tag{display:inline-flex;align-items:center;font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:600;font-size:.76rem;padding:4px 10px;border-radius:4px 10px 10px 4px;white-space:nowrap;line-height:1.3}
+.t-y{background:var(--yellow);color:var(--yellow-ink)}
+.t-ys{background:var(--yellow-soft);color:var(--yellow-ink)}
+.t-g{background:var(--green-soft);color:var(--green)}
+.t-b{background:var(--blue-soft);color:var(--blue)}
+.t-r{background:var(--red-soft);color:var(--red)}
+.t-s{background:var(--sand);color:var(--ink)}
+.t-o{background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1.2px var(--rule2)}
+.note{background:var(--yellow-soft);border-radius:10px;padding:11px 14px;font-size:.92rem;line-height:1.45}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label,.lbl{font-size:.82rem;font-weight:650}
+.input{width:100%;padding:11px 12px;border:1.5px solid var(--ink);border-radius:8px;background:#fff;font-size:.95rem}
+.input.sm{padding:7px 9px;font-size:.9rem}
+.hint{font-size:.82rem;color:var(--muted);line-height:1.45}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:.95rem;line-height:1.4}
+.check input{width:18px;height:18px;margin-top:2px;accent-color:var(--ink);flex:none}
+.tablebox{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+thead tr{background:var(--sand);text-align:left;font-size:.76rem}
+th{padding:11px 10px;font-weight:700;border-top:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);white-space:nowrap}
+td{padding:12px 10px;vertical-align:top;border-top:1px solid var(--rule)}
+th:first-child,td:first-child{padding-left:20px}th:last-child,td:last-child{padding-right:20px}
+td.r,th.r{text-align:right}
+tr.pair td{background:var(--yellow-soft)}
+.mono.code{font-size:.76rem;color:var(--muted)}
+.kpi{display:flex;flex-direction:column;gap:6px;padding:16px 18px}
+.kpi .v{font-size:2rem;line-height:1;font-weight:800;font-stretch:75%}
+.kpi .k{font-size:.8rem;font-weight:650;color:var(--muted)}
+.bar{display:flex;height:18px;border:1.5px solid var(--ink);border-radius:6px;overflow:hidden}
+.bar>div+div{border-left:1.5px solid var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:.88rem}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.list{list-style:none;margin:0;padding:0}
+.list>li{border-top:1px solid var(--rule);padding:11px 0}
+.list>li:first-child{border-top:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1.5px solid var(--ink);background:transparent;border-radius:999px;padding:7px 14px;font-weight:700;font-size:.84rem;cursor:pointer;min-height:36px}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--cream)}
+/* header */
+.top{border-bottom:1.5px solid var(--ink);background:rgba(239,230,212,.96);position:sticky;top:0;z-index:20;backdrop-filter:saturate(1.2) blur(6px)}
+.top .bar1{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding-top:12px;padding-bottom:10px}
+.brand{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink)}
+.brand b{font-weight:800;font-size:1.15rem}.brand span{font-size:1.05rem}
+.ctx{font-size:.88rem;color:var(--muted)}
+.steps{display:flex;gap:6px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none}
+.steps a{flex:none;padding:7px 14px;border-radius:999px;border:1.5px solid var(--rule2);text-decoration:none;font-weight:650;font-size:.88rem;white-space:nowrap}
+.steps a[aria-current=step]{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+.demo{background:var(--ink);color:var(--cream);font-size:.8rem}
+.demo .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding-top:7px;padding-bottom:7px}
+.demo .seg{display:inline-flex;border:1px solid #5B655D;border-radius:999px;overflow:hidden}
+.demo .seg button{background:transparent;border:0;color:var(--cream);padding:4px 11px;cursor:pointer;font-size:.8rem;font-weight:600}
+.demo .seg button[aria-pressed=true]{background:var(--yellow);color:var(--yellow-ink)}
+.demo .lnk{background:transparent;border:0;color:var(--cream);text-decoration:underline;cursor:pointer;font-size:.8rem;padding:4px 0}
+main.page{padding-top:36px;padding-bottom:72px;display:flex;flex-direction:column;gap:28px}
+.check-row{display:grid;grid-template-columns:132px minmax(0,1fr);gap:16px;align-items:baseline}
+@media (max-width:560px){.check-row{grid-template-columns:minmax(0,1fr);gap:6px}}
+.mini{display:grid;grid-template-columns:minmax(0,2fr) repeat(2,minmax(0,1fr));gap:6px;font-size:.84rem}
+.mini span:nth-child(3n+2),.mini span:nth-child(3n){text-align:right}
+.stamp{font-weight:800;font-stretch:72%;font-size:1.15rem;border:2px solid var(--green);color:var(--green);padding:6px 14px;border-radius:8px;transform:rotate(-2deg);display:inline-block}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--cream);padding:11px 18px;border-radius:999px;font-size:.92rem;font-weight:600;z-index:50;box-shadow:4px 4px 0 var(--rule2)}
+.recount-in{width:96px;text-align:right}
+#report{display:none}
+@media print{
+  body{background:#fff}
+  #root,.toast{display:none!important}
+  #report{display:block;font-family:'Archivo',sans-serif;color:#000;padding:0 8mm}
+  #report table{font-size:9.5pt}
+  #report th,#report td{border-color:#999}
+  @page{margin:14mm}
+}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="report" aria-hidden="true"></div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<script>
+(function(){
+'use strict';
+
+/* ---------- datos de ejemplo ---------- */
+var CAUSES = [
+  'Facturado, no despachado','Recibido, no registrado','Error de despacho (picking)','Error al recibir del proveedor',
+  'Transferencia desconocida o en tránsito','Devolución mal procesada','Ajuste sin aprobar','Merma o vencido sin dar de baja',
+  'Cruce de referencias','Error de código o maestro','Unidad de medida','Movimiento durante el corte','Faltante real'
+];
+var CATEGORY = {
+  'Facturado, no despachado':'Corrección de registro','Recibido, no registrado':'Corrección de registro',
+  'Error de despacho (picking)':'Por reclamar a cliente','Error al recibir del proveedor':'Por reclamar a proveedor',
+  'Transferencia desconocida o en tránsito':'Corrección de registro','Devolución mal procesada':'Corrección de registro',
+  'Ajuste sin aprobar':'Corrección de registro','Merma o vencido sin dar de baja':'Merma (gasto)',
+  'Cruce de referencias':'Reclasificación entre artículos','Error de código o maestro':'Corrección de registro',
+  'Unidad de medida':'Corrección de registro','Movimiento durante el corte':'Corrección de registro','Faltante real':'Faltante (gasto)'
+};
+
+function seed(){
+  var C = function(o){ o.status = o.status || (o.kind==='doc' ? 'propuesta' : (o.kind==='none' ? 'recuento' : 'revisar')); o.recount = null; o.approval = null; o.note = o.note || ''; o.proposedBy = o.kind==='doc' ? 'auto' : null; o.originalCause = o.cause; o.returnNote=''; return o; };
+  return {
+    v: 3,
+    account: 'firma',         // 'firma' | 'empresa'
+    role: 'investigador',     // 'investigador' | 'aprobador'
+    firm: 'Consultora Ríos',
+    company: 'Ferretería Central',
+    investigator: 'Consultora Ríos',
+    approver: 'L. Méndez · Gerencia de operaciones',
+    approverEmail: 'lmendez@ferreteriacentral.com',
+    closeName: 'Conteo general — Bodega Central',
+    cutoff: '30/09/2026 · 18:00',
+    deadline: '05/10/2026',
+    day: 2, days: 5, kardexSince: 412,
+    threshold: 100,
+    rules: { noDoc:true, shortage:true, judgment:true, blind:true },
+    sentForApproval: false,
+    signed: null,
+    cases: [
+      C({id:'PIN-LB-01', name:'Pintura látex blanco, galón', loc:'Pasillo 4-B', cost:22.5, sys:120, phys:108, kind:'criterio', cause:'Cruce de referencias', pair:'PIN-LBH-01',
+        summary:'Par con PIN-LBH-01 blanco hueso (+12)',
+        explain:'No es una pérdida. Doce galones de blanco salieron registrados como blanco hueso: el blanco tiene 12 de menos y el blanco hueso, en el mismo pasillo, 12 de más. Misma marca, presentación y costo, así que el ajuste neto del par es $0.',
+        found:'PIN-LBH-01 blanco hueso tiene +12: misma marca, presentación, costo y pasillo.',
+        evidence:[['Conteo físico','línea 412','PIN-LB-01 · 108 galones · Pasillo 4-B'],['Conteo físico','línea 413','PIN-LBH-01 · 60 galones · Pasillo 4-B (sistema: 48)'],['Kardex','FAC-20377','24/09 · salida de 12 PIN-LBH-01 a Ferretería El Tornillo, que compra blanco cada mes'],['Maestro','PIN-LB / LBH','Misma marca y galón; descripciones difieren solo en “hueso”; costo $22.50 en ambos']]}),
+      C({id:'PIN-LBH-01', name:'Pintura látex blanco hueso, galón', loc:'Pasillo 4-B', cost:22.5, sys:48, phys:60, kind:'criterio', cause:'Cruce de referencias', pair:'PIN-LB-01',
+        summary:'Par con PIN-LB-01 blanco (−12)', explain:'Contraparte del cruce con pintura blanco: tiene los 12 galones que al blanco le faltan.', found:'PIN-LB-01 blanco tiene −12 en el mismo pasillo.',
+        evidence:[['Conteo físico','línea 413','PIN-LBH-01 · 60 galones · Pasillo 4-B'],['Kardex','FAC-20377','24/09 · salida de 12 PIN-LBH-01']]}),
+      C({id:'TOR-DW-61', name:'Tornillo drywall 6×1", caja 1000', loc:'Pasillo 1-A', cost:9.8, sys:96, phys:120, kind:'doc', cause:'Recibido, no registrado',
+        summary:'REC-3371 · 30/09 14:20, sin entrada en el kardex', explain:'Llegaron 24 cajas el día del corte y la recepción no se registró en el sistema.', found:'Recepción REC-3371 de 24 cajas sin entrada en el kardex.',
+        evidence:[['Recepciones','REC-3371','30/09 14:20 · 24 cajas de Importadora Bolt'],['Kardex','—','Sin entrada de TOR-DW-61 desde el 12/09']]}),
+      C({id:'TAL-PER-12', name:'Taladro percutor ½" 650 W', loc:'Pasillo 6-A', cost:54, sys:14, phys:12, kind:'none', cause:'Faltante real',
+        summary:'Ningún documento explica la diferencia', explain:'Se revisaron las 12 causas y ninguna la explica. Si el recuento confirma 12, queda como faltante real.', found:'',
+        evidence:[['Conteo físico','línea 988','TAL-PER-12 · 12 unidades · Pasillo 6-A'],['Kardex','—','Último movimiento: FAC-20302, 18/09, 1 unidad, con guía']]}),
+      C({id:'PVC-12-6M', name:'Tubo PVC ½" × 6 m', loc:'Patio', cost:2.4, sys:310, phys:350, kind:'doc', cause:'Facturado, no despachado',
+        summary:'FAC-20418 · 30/09, sin guía de despacho', explain:'La factura descontó 40 tubos del sistema, pero siguen en el patio esperando despacho.', found:'FAC-20418 sin guía de despacho al corte.',
+        evidence:[['Facturas','FAC-20418','30/09 16:05 · 40 tubos a Constructora Arias'],['Guías','—','Sin guía para FAC-20418 al corte']]}),
+      C({id:'CIN-TEF-34', name:'Cinta teflón ¾"', loc:'Pasillo 2-B', cost:0.35, sys:1440, phys:1296, kind:'criterio', cause:'Unidad de medida',
+        summary:'Igual a 1 caja de 144: ¿sin contar o registrada doble?', explain:'La diferencia es exactamente una caja de 144. O una caja no se contó, o se registró como unidades y como caja.', found:'−144 = 1 caja de 144 unidades.',
+        evidence:[['Maestro','CIN-TEF-34 / CIN-TEF-34C','Existe código por unidad y por caja de 144'],['Recepciones','REC-3349','15/09 · entrada de 10 cajas registrada en unidades']]}),
+      C({id:'DIS-CO-45', name:'Disco de corte 4½"', loc:'Pasillo 5-A', cost:1.85, sys:200, phys:175, kind:'doc', cause:'Error de despacho (picking)',
+        summary:'GD-7781 despachó 75; FAC-20391 facturó 50', explain:'Se despacharon 25 discos de más. Hay que reclamarlos o facturarlos al cliente.', found:'Guía y factura no coinciden en cantidad.',
+        evidence:[['Facturas','FAC-20391','27/09 · 50 discos'],['Guías','GD-7781','27/09 · 75 discos firmados por el cliente']]}),
+      C({id:'BRK-20A-1P', name:'Breaker 20 A, 1 polo', loc:'Pasillo 3-C', cost:6.9, sys:64, phys:61, kind:'doc', cause:'Devolución mal procesada',
+        summary:'NC-0912 · entrada duplicada en el kardex', explain:'La devolución de 3 breakers entró dos veces al sistema.', found:'NC-0912 aparece dos veces en el kardex.',
+        evidence:[['Notas de crédito','NC-0912','22/09 · devolución de 3 unidades'],['Kardex','2 líneas','NC-0912 registrada el 22/09 y el 23/09']]}),
+      C({id:'CAB-THHN-12', name:'Cable THHN 12, rollo 100 m', loc:'Pasillo 3-D', cost:38, sys:20, phys:18, kind:'none', cause:'Faltante real',
+        summary:'Ningún documento explica la diferencia', explain:'Ninguna causa documentada. El recuento dirá si es error de conteo o faltante.', found:'',
+        evidence:[['Conteo físico','línea 655','CAB-THHN-12 · 18 rollos · Pasillo 3-D']]}),
+      C({id:'LLV-PAS-12', name:'Llave de paso ½" bronce', loc:'Pasillo 2-C', cost:7.5, sys:40, phys:34, kind:'criterio', cause:'Error de código o maestro',
+        summary:'6 unidades contadas con código 7709911', explain:'En el mismo pasillo se contaron 6 unidades con un código que el sistema no conoce. Probablemente son estas llaves con etiqueta de código anterior.', found:'Coincide con 6 unidades del código desconocido 7709911.',
+        evidence:[['Notas del conteo','nota 2','Código 7709911 · 6 unidades · Pasillo 2-C'],['Maestro','LLV-PAS-12','Código de barras anterior 7709911 dado de baja en julio']]}),
+      C({id:'SIL-TRA-300', name:'Silicón transparente 300 ml', loc:'Pasillo 5-C', cost:3.2, sys:150, phys:162, kind:'doc', cause:'Movimiento durante el corte',
+        summary:'REC-3380 · 30/09 18:40, recibido durante el conteo', explain:'La mercancía llegó después del corte pero se contó; la recepción está fechada 40 minutos después.', found:'Recepción REC-3380 a las 18:40, después del corte.',
+        evidence:[['Recepciones','REC-3380','30/09 18:40 · 12 unidades']]}),
+      C({id:'BRO-14', name:'Broca ¼" acero', loc:'Pasillo 5-A', cost:1.1, sys:300, phys:290, kind:'doc', cause:'Error al recibir del proveedor',
+        summary:'REC-3355 registró 100; la guía del proveedor dice 90', explain:'Se registraron 100 brocas, pero el proveedor entregó 90 según su guía.', found:'Recepción y guía del proveedor no coinciden.',
+        evidence:[['Recepciones','REC-3355','19/09 · 100 brocas'],['Guía de proveedor','GP-55102','19/09 · 90 brocas']]}),
+      C({id:'GUA-NIT-M', name:'Guantes de nitrilo, caja 100', loc:'Pasillo 7-B', cost:8.4, sys:30, phys:28, kind:'doc', cause:'Merma o vencido sin dar de baja',
+        summary:'DAÑ-044 · 2 cajas dañadas sin ajuste', explain:'Se reportaron 2 cajas dañadas por agua y se descartaron sin darlas de baja.', found:'Reporte de daño DAÑ-044 sin ajuste en el kardex.',
+        evidence:[['Ajustes / daños','DAÑ-044','26/09 · 2 cajas mojadas, descartadas']]}),
+      C({id:'FOC-LED-9', name:'Foco LED 9 W', loc:'Pasillo 7-A', cost:1.6, sys:500, phys:470, kind:'none', cause:'Faltante real',
+        summary:'Posible transferencia a Sucursal David; no se subió ese archivo', explain:'No hay documento que lo explique con los archivos subidos. Podría ser una transferencia, pero sin ese archivo no se puede verificar.', found:'',
+        evidence:[['Conteo físico','línea 1101','FOC-LED-9 · 470 unidades · Pasillo 7-A']]})
+    ],
+    foundItems: [
+      {id:'F1', what:'Código 7709911 · 6 unid.', where:'Pasillo 2-C · no existe en el sistema', match:'Coincide con el faltante de LLV-PAS-12, llave de paso ½" (−6): etiqueta con código anterior.', tag:'Posible cruce', t:'t-b'},
+      {id:'F2', what:'Etiqueta ilegible · 2 cajas', where:'Pasillo 7-A', match:'No se puede identificar con documentos. Abrir y leer el contenido.', tag:'En recuento', t:'t-y'},
+      {id:'F3', what:'Código 7701290 · 18 unid.', where:'Pasillo 5-B · sin descripción', match:'Ningún faltante parecido. Revisar si falta en el maestro de artículos.', tag:'Por revisar', t:'t-b'}
+    ],
+    log: []
+  };
+}
+
+var KEY = 'zeli-inv-close-v3';
+var S;
+function load(){ try{ var raw = localStorage.getItem(KEY); if(raw){ var o = JSON.parse(raw); if(o && o.v===3){ S=o; return; } } }catch(e){} S = seed(); }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+load();
+
+/* ---------- utilidades ---------- */
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function fmtN(n){ var s=Math.abs(n).toLocaleString('en-US'); return (n<0?'−':(n>0?'+':''))+s; }
+function money(n,sign){ var s='$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); if(sign===false) return (n<0?'−':'')+s; return (n<0?'−':(n>0?'+':''))+s; }
+function cls(n){ return n<0?'neg':(n>0?'pos':''); }
+function byId(id){ for(var i=0;i<S.cases.length;i++) if(S.cases[i].id===id) return S.cases[i]; return null; }
+function diff(c){ return c.phys - c.sys; }
+function val(c){ return Math.round(diff(c)*c.cost*100)/100; }
+function who(){ return S.role==='aprobador' ? S.approver.split(' · ')[0] : S.investigator; }
+function now(){ var d=new Date(); return d.toLocaleDateString('es-PA')+' '+d.toLocaleTimeString('es-PA',{hour:'2-digit',minute:'2-digit'}); }
+function logIt(t){ S.log.push({at:now(), by:who(), t:t}); }
+function toast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(function(){t.hidden=true;},2600); }
+
+function recountRequired(c){
+  if(c.status==='cerrada') return false;
+  if(S.rules.noDoc && c.kind==='none') return true;
+  if(S.rules.shortage && c.cause==='Faltante real') return true;
+  if(S.rules.judgment && c.kind==='criterio' && Math.abs(val(c))>S.threshold) return true;
+  if(c.pair){ var p=byId(c.pair); if(p && S.rules.judgment && p.kind==='criterio' && Math.abs(val(p))>S.threshold) return true; }
+  return false;
+}
+function recountOutcome(c){
+  if(c.recount==null || c.recount==='') return null;
+  var r=Number(c.recount);
+  if(r===c.sys) return 'sistema';
+  if(r===c.phys) return 'conteo';
+  return 'otro';
+}
+function readyOne(c){ return !recountRequired(c) || recountOutcome(c)==='conteo' || recountOutcome(c)==='otro'; }
+function canPropose(c){ if(!readyOne(c)) return false; if(c.pair){ var p=byId(c.pair); if(p && p.status!=='cerrada' && !readyOne(p)) return false; } return true; }
+function baseKind(c){
+  if(c.status==='cerrada') return {t:'Error de conteo', c:'t-g'};
+  if(c.kind==='doc') return {t:'Documento', c:'t-g'};
+  if(c.kind==='criterio') return {t:'Criterio', c:'t-b'};
+  return {t:'Sin documento', c:'t-r'};
+}
+function statusTag(c){
+  if(c.approval==='devuelta') return {t:'Devuelta', c:'t-r'};
+  if(c.status==='cerrada') return {t:'Cerrada sin ajuste', c:'t-g'};
+  if(c.status==='propuesta') return {t: c.approval==='aceptada'?'Aceptada':'Propuesta', c:'t-g'};
+  if(recountRequired(c) && !recountOutcome(c)) return {t:'En recuento', c:'t-y'};
+  return {t:'Por revisar', c:'t-b'};
+}
+function sortedCases(){ return S.cases.slice().sort(function(a,b){ return Math.abs(val(b))-Math.abs(val(a)); }); }
+function finalQty(c){ var o=recountOutcome(c); if(o==='otro') return Number(c.recount)-c.sys; return diff(c); }
+function finalVal(c){ return Math.round(finalQty(c)*c.cost*100)/100; }
+function needsAttention(c){ return c.status==='propuesta' && (c.kind!=='doc' || c.cause!==c.originalCause || c.cause==='Faltante real' || recountOutcome(c)==='otro'); }
+function inAdjustment(c){ return c.status==='propuesta' && c.approval!=='devuelta' && finalQty(c)!==0; }
+function stats(){
+  var s={n:S.cases.length, short:0, over:0, doc:0, crit:0, rec:0, none:0, prop:0, closed:0};
+  S.cases.forEach(function(c){ var v=val(c); if(v<0) s.short+=v; else s.over+=v;
+    if(c.status==='cerrada') { s.closed++; s.doc++; return; }
+    if(c.status==='propuesta') s.prop++;
+    if(recountRequired(c) && !recountOutcome(c)) { s.rec++; return; }
+    if(c.kind==='doc') s.doc++; else if(c.kind==='criterio') s.crit++; else s.none++;
+  });
+  s.net=s.short+s.over; return s;
+}
+function adjTotal(){ var t=0; S.cases.forEach(function(c){ if(inAdjustment(c) && (S.signed || c.approval!=='devuelta')) t+=finalVal(c); }); return Math.round(t*100)/100; }
+function selfApproval(){ return !S.approver || S.approver.trim()==='' || S.approver.split(' · ')[0].trim()===S.investigator.trim(); }
+
+/* ---------- piezas ---------- */
+var LOGO='<svg width="22" height="18" viewBox="0 0 22 18" aria-hidden="true"><rect x="0" width="3" height="18" fill="#1E2621"/><rect x="5" width="1.5" height="18" fill="#1E2621"/><rect x="8.5" width="3" height="18" fill="#1E2621"/><rect x="13.5" width="1.5" height="18" fill="#1E2621"/><rect x="17" width="1.5" height="18" fill="#1E2621"/><rect x="20" width="2" height="18" fill="#1E2621"/></svg>';
+var STEPS=[['archivos','1 Archivos'],['diferencias','2 Diferencias'],['caso','3 Revisión'],['recuento','4 Recuento'],['aprobacion','5 Aprobación'],['ajuste','6 Ajuste']];
+
+function demoBar(){
+  return '<div class="demo" role="region" aria-label="Controles del ejemplo"><div class="wrap">'+
+    '<span class="mono" style="color:var(--yellow)">Ejemplo</span>'+
+    '<span>Cuenta:</span><span class="seg" role="group" aria-label="Tipo de cuenta">'+
+      '<button data-a="account" data-v="firma" aria-pressed="'+(S.account==='firma')+'">Consultor o firma</button>'+
+      '<button data-a="account" data-v="empresa" aria-pressed="'+(S.account==='empresa')+'">La empresa</button></span>'+
+    '<span>Entrar como:</span><span class="seg" role="group" aria-label="Rol en este cierre">'+
+      '<button data-a="role" data-v="investigador" aria-pressed="'+(S.role==='investigador')+'">Quien investiga</button>'+
+      '<button data-a="role" data-v="aprobador" aria-pressed="'+(S.role==='aprobador')+'">Quien aprueba</button></span>'+
+    '<button class="lnk" data-a="reset">Reiniciar ejemplo</button>'+
+  '</div></div>';
+}
+function header(step){
+  var closeHdr = step!=='home';
+  var counter = S.signed ? '<span class="tag t-g">Cerrado en '+S.day+' de '+S.days+' días</span>' :
+    '<span class="tag t-y">Día '+S.day+' de '+S.days+' · cierra '+esc(S.deadline)+'</span><span class="ctx xs">'+S.kardexSince+' movimientos en el kardex desde el corte</span>';
+  var h = demoBar()+'<header class="top"><div class="wrap bar1">'+
+    '<div class="row g16"><a class="brand" href="#/">'+LOGO+'<b>Zeli</b><span>Inventory</span></a>'+
+    (closeHdr ? '<span class="ctx">'+esc(S.company)+' · '+esc(S.closeName)+'</span>' : '<span class="ctx">'+esc(S.account==='firma'?S.firm:S.company)+'</span>')+'</div>'+
+    (closeHdr ? '<div class="row g10">'+counter+'</div>' : '')+
+  '</div>';
+  if(closeHdr){
+    h+='<nav class="wrap steps" aria-label="Pasos del cierre">';
+    STEPS.forEach(function(s){ var href = s[0]==='caso' ? '#/caso/'+firstOpenCase() : '#/'+s[0];
+      h+='<a href="'+href+'"'+(s[0]===step?' aria-current="step"':'')+'>'+s[1]+'</a>'; });
+    h+='</nav>';
+  }
+  return h+'</header>';
+}
+function firstOpenCase(){ var l=sortedCases(); for(var i=0;i<l.length;i++){ if(l[i].status!=='propuesta' && l[i].status!=='cerrada') return l[i].id; } return l[0].id; }
+function roleBanner(){
+  if(S.role!=='aprobador') return '';
+  return '<div class="note">Está viendo como <strong>quien aprueba</strong> ('+esc(S.approver.split(' · ')[0])+'). Puede revisar todo; las propuestas las hace quien investiga. <a href="#/aprobacion">Ir a aprobar →</a></div>';
+}
+
+/* ---------- pantalla 0 ---------- */
+function vHome(){
+  var st=stats(); var dayTag='<span class="tag t-y">Día '+S.day+' de '+S.days+'</span>';
+  var cur = S.signed ? {tag:'<span class="tag t-g">Firmado</span>', det:'Archivo de ajuste listo', href:'#/ajuste', cta:'Ver archivo'} :
+            S.sentForApproval ? {tag:'<span class="tag t-b">Esperando aprobación</span>', det:'Enviado a '+esc(S.approver.split(' · ')[0]), href:'#/aprobacion', cta:'Ver'} :
+            {tag:'<span class="tag t-y">En investigación</span>', det:st.n+' diferencias · '+(st.n-st.prop-st.closed)+' sin proponer · '+st.rec+' en recuento', href:'#/diferencias', cta:'Continuar'};
+  var h=header('home')+'<main class="wrap page">';
+  if(S.account==='firma'){
+    h+='<div class="row between end g16"><div><h1 class="display">Sus clientes</h1><p class="lede">Cada cliente tiene sus cierres. Usted investiga; alguien del cliente aprueba.</p></div>'+
+      '<div class="row g10"><button class="btn ghost" data-a="soon">Nuevo cliente</button><a class="btn" href="#/archivos">Nuevo cierre</a></div></div>';
+    var clients=[
+      {name:S.company, kind:'Distribuidor ferretero · Softland', tag:cur.tag, label:'Cierre en curso', close:S.closeName, det:cur.det, foot:S.signed?'Cerrado':'Día '+S.day+' de '+S.days, href:cur.href, cta:cur.cta},
+      {name:'Distribuidora del Istmo', kind:'Consumo masivo · SAP Business One', tag:'<span class="tag t-b">Esperando aprobación</span>', label:'Enviado a', close:'R. Pinzón, Gerencia', det:'52 diferencias explicadas · enviado ayer', foot:'Día 4 de 5', href:'', cta:''},
+      {name:'Farmacia Santa Ana', kind:'Farmacia · Excel · lotes y vencimientos', tag:'<span class="tag t-g">Firmado</span>', label:'Último cierre', close:'Conteo trimestral — septiembre', det:'19 diferencias · 4 por lote equivocado', foot:'Cerrado en 3 días', href:'', cta:''}
+    ];
+    h+='<section class="grid c3" aria-label="Clientes">';
+    clients.forEach(function(c){ h+='<article class="card stack" style="overflow:hidden"><div class="pad stack g10"><div class="row between start g10"><h2 class="h2">'+esc(c.name)+'</h2>'+c.tag+'</div><span class="small muted">'+esc(c.kind)+'</span></div>'+
+      '<div class="pad stack g6" style="border-top:1.5px solid var(--ink);flex:1"><span class="xs muted">'+esc(c.label)+'</span><strong>'+esc(c.close)+'</strong><span class="small">'+c.det+'</span></div>'+
+      '<div class="row between g10" style="background:var(--ink);color:var(--cream);padding:12px 22px"><span class="mono xs" style="color:var(--yellow)">'+esc(c.foot)+'</span>'+(c.href?'<a href="'+c.href+'" style="color:var(--cream);font-weight:700" class="small">'+c.cta+' →</a>':'<span class="xs" style="color:#C9BFA9">Ejemplo</span>')+'</div></article>'; });
+    h+='</section>';
+  } else {
+    h+='<div class="row between end g16"><div><h1 class="display">Mis cierres</h1><p class="lede">'+esc(S.company)+'. Cada conteo se cierra aquí: diferencias explicadas, aprobadas y listas para su sistema.</p></div>'+
+      '<a class="btn" href="#/archivos">Nuevo cierre</a></div>';
+    h+='<div class="main-side"><div class="main">';
+    h+='<article class="card pad stack g12"><div class="row between start g10"><div class="stack g4"><span class="xs muted">Cierre en curso · Bodega Central</span><h2 class="h2">'+esc(S.closeName)+'</h2></div>'+cur.tag+'</div>'+
+      '<p class="small" style="margin:0">'+cur.det+'</p><div class="row g10">'+(S.signed?'':dayTag)+'<a class="btn sm" href="'+cur.href+'">'+cur.cta+'</a></div></article>';
+    h+='<section class="card flat pad stack g8" aria-labelledby="ant"><h2 class="h3" id="ant">Cierres anteriores</h2><ul class="list">'+
+      '<li class="row between g8"><span><strong>Conteo general — marzo</strong> · Bodega Central</span><span class="mono xs muted">firmado · 6 días</span></li>'+
+      '<li class="row between g8"><span><strong>Conteo cíclico — agosto</strong> · Sucursal David</span><span class="mono xs muted">firmado · 2 días</span></li></ul></section>';
+    h+='</div><aside class="side"><section class="card pad stack g10" aria-labelledby="loc"><h2 class="h3" id="loc">Ubicaciones</h2><ul class="list"><li class="row between"><span>Bodega Central</span><span class="tag t-y">en cierre</span></li><li class="row between"><span>Sucursal David</span><span class="mono xs muted">último: agosto</span></li></ul></section>'+
+      '<section class="card dark pad stack g10"><span class="mono xs" style="color:var(--yellow)">¿Su próximo conteo?</span><h2 class="h3">Cuente con Zeli: teléfono, PDT o escáner</h2><p class="small" style="margin:0">El corte queda con hora exacta y los códigos desconocidos se marcan al escanear.</p><button class="btn yellow sm" data-a="soon" style="align-self:flex-start">Preparar un conteo</button></section></aside></div>';
+  }
+  return h+'</main>';
+}
+
+/* ---------- pantalla 1 ---------- */
+function vArchivos(){
+  var opt=[['Kardex / movimientos','kardex_sep.xlsx','todas las causas de movimiento',1],['Facturas de venta','facturas_sep.csv','facturado no despachado',1],['Guías de despacho','despachos_sep.csv','facturado no despachado, error de despacho',1],['Recepciones de compra','recepciones_sep.csv','recibido sin registrar, error al recibir',1],['Transferencias','','transferencias desconocidas o en tránsito',0],['Devoluciones / notas de crédito','nc_sep.csv','devolución mal procesada',1],['Ajustes de inventario','ajustes_sep.csv','ajuste sin aprobar, merma sin dar de baja',1],['Maestro de artículos','maestro_articulos.xlsx','cruce de referencias, código o maestro, unidad de medida',1]];
+  var h=header('archivos')+'<main class="wrap page">'+roleBanner()+
+    '<div><h1 class="display">Nuevo cierre</h1><p class="lede">El conteo y los saldos del sistema al mismo corte bastan para el cruce. Cada documento adicional permite explicar más diferencias.</p></div>'+
+    '<div class="main-side"><div class="main">'+
+    '<section class="card pad grid c2" style="gap:16px" aria-labelledby="dc"><h2 id="dc" class="h2" style="grid-column:1/-1">Datos del cierre</h2>'+
+      '<div class="field" style="grid-column:1/-1"><label for="f-name">Nombre</label><input id="f-name" class="input" data-f="closeName" value="'+esc(S.closeName)+'"></div>'+
+      '<div class="field"><label for="f-cut">Corte del conteo</label><input id="f-cut" class="input" data-f="cutoff" value="'+esc(S.cutoff)+'"></div>'+
+      '<div class="field"><label for="f-dl">Cerrar a más tardar</label><input id="f-dl" class="input" data-f="deadline" value="'+esc(S.deadline)+'"></div>'+
+      '<div class="field"><label for="f-inv">Quién investiga</label><input id="f-inv" class="input" data-f="investigator" value="'+esc(S.investigator)+'"></div>'+
+      '<div class="field"><label for="f-ap">Quién aprueba</label><input id="f-ap" class="input" data-f="approver" value="'+esc(S.approver)+'"></div>'+
+      '<p class="hint" style="grid-column:1/-1;margin:0">Quien aprueba recibe un enlace que abre directo en la aprobación. Si lo deja vacío o es la misma persona que investiga, el informe dirá “sin separación de funciones”.</p>'+
+    '</section>'+
+    '<section class="stack g12" aria-labelledby="cf"><h2 id="cf" class="h2">Conteo físico</h2><div class="grid c2">'+
+      '<div class="card pad stack g10"><div class="row between g10"><strong>Archivo del conteo</strong><span class="tag t-g">Subido</span></div><span class="mono small">conteo_bodega_central.xlsx</span><span class="small muted">1,284 líneas · código, cantidad, ubicación</span><span class="note small">'+S.foundItems.length+' notas del conteo leídas: códigos que no existen en el sistema y etiquetas ilegibles. Se revisan como casos.</span><label class="btn ghost sm" style="align-self:flex-start">Cambiar archivo<input type="file" class="sr" data-a="file" accept=".xlsx,.xls,.csv"></label></div>'+
+      '<div class="card dark pad stack g10"><span class="mono xs" style="color:var(--yellow)">¿Todavía no ha contado?</span><h3 class="h3" style="font-size:1.45rem">Cuente con Zeli: teléfono, PDT o escáner</h3><ul style="margin:0;padding-left:18px" class="small"><li>El corte queda con hora exacta</li><li>Los códigos desconocidos se marcan al escanear</li><li>Los recuentos se hacen en el mismo teléfono</li></ul><button class="btn yellow sm" data-a="soon" style="align-self:flex-start">Preparar un conteo</button></div>'+
+    '</div></section>'+
+    '<section class="card pad-s row between g12" aria-labelledby="sd"><div class="stack g4"><h2 id="sd" style="margin:0;font-size:1.05rem">Saldos del sistema al corte</h2><span class="mono small">saldos_softland_30sep.xlsx</span><span class="small muted">1,312 artículos · código, saldo, costo</span></div><span class="tag t-g">Subido</span></section>'+
+    '<section class="stack g12" aria-labelledby="ex"><h2 id="ex" class="h2">Para explicar diferencias <span class="sub">— exportados de su sistema</span></h2><div class="grid c2" style="gap:12px">';
+  opt.forEach(function(o){ h+='<div class="card '+(o[3]?'flat':'dash')+' pad-s stack g6"><div class="row between start g10"><strong style="font-size:.97rem">'+o[0]+'</strong><span class="tag '+(o[3]?'t-g':'t-ys')+'">'+(o[3]?'Subido':'Falta')+'</span></div><span class="mono code">'+(o[1]||'Sin archivo')+'</span><span class="xs muted">Permite revisar: '+o[2]+'</span></div>'; });
+  h+='</div><p class="card dash pad-s small" style="margin:0">Sus archivos no traen lote ni vencimiento, así que esa revisión queda apagada. Se activa sola cuando el conteo y los saldos traen esas columnas.</p></section>'+
+    '<section class="card pad stack g12" aria-labelledby="rr"><h2 id="rr" class="h2">Cuándo se exige recuento</h2><p class="small muted" style="margin:0">Un caso con estas condiciones no se puede proponer sin el resultado del recuento.</p>'+
+      '<label class="check"><input type="checkbox" data-rule="noDoc" '+(S.rules.noDoc?'checked':'')+'> Ningún documento explica la diferencia</label>'+
+      '<label class="check"><input type="checkbox" data-rule="shortage" '+(S.rules.shortage?'checked':'')+'> La conclusión sería faltante real</label>'+
+      '<div class="check"><input id="r-j" type="checkbox" data-rule="judgment" '+(S.rules.judgment?'checked':'')+'><label for="r-j">La causa depende de criterio y el valor pasa de</label><label class="sr" for="r-t">Umbral</label><input id="r-t" class="input sm mono" style="width:90px" data-f="threshold" inputmode="decimal" value="$'+S.threshold+'"></div>'+
+      '<label class="check"><input type="checkbox" data-rule="blind" '+(S.rules.blind?'checked':'')+'> Recuento ciego: quien recuenta no ve la cantidad esperada</label>'+
+    '</section></div>'+
+    '<aside class="side"><section class="card pad stack g12" aria-labelledby="cv"><h2 id="cv" class="h2">Causas que se podrán revisar</h2><p style="margin:0;font-size:2.6rem;font-weight:800;font-stretch:62%;line-height:1">12 <span style="font-size:1rem;font-weight:400;font-stretch:100%" class="muted">de 13 que aplican</span></p><ul class="list small">';
+  CAUSES.slice(0,12).forEach(function(c){ var miss = c.indexOf('Transferencia')===0; h+='<li class="row g10" style="padding:6px 0;border:0"><span class="mono" aria-hidden="true" style="width:14px;color:'+(miss?'var(--red)':'var(--green)')+'">'+(miss?'–':'✓')+'</span><span>'+c+(miss?' <span class="sr">(falta archivo)</span>':'')+'</span></li>'; });
+  h+='<li class="row g10 muted" style="padding:6px 0;border:0"><span class="mono" aria-hidden="true" style="width:14px">·</span><span>Lote equivocado — no aplica</span></li></ul>'+
+    '<p class="note small" style="margin:0">Sin transferencias, las diferencias entre bodegas quedarán como no verificables.</p>'+
+    '<a class="btn block" href="#/diferencias">Hacer el cruce</a></section></aside></div></main>';
+  return h;
+}
+
+/* ---------- pantalla 2 ---------- */
+var FILTER='todas';
+function vDiferencias(){
+  var st=stats(); var list=sortedCases();
+  var fl=list.filter(function(c){ var t=statusTag(c).t;
+    if(FILTER==='revisar') return t==='Por revisar'||t==='Devuelta';
+    if(FILTER==='recuento') return t==='En recuento';
+    if(FILTER==='explicadas') return c.status==='propuesta'||c.status==='cerrada';
+    return true; });
+  var pending=S.cases.filter(function(c){return c.status!=='propuesta'&&c.status!=='cerrada';}).length;
+  var h=header('diferencias')+'<main class="wrap page">'+roleBanner()+
+    '<div class="row between end g16"><h1 class="display">Diferencias</h1>'+
+    (S.role==='investigador' && !S.signed ? '<button class="btn '+(S.sentForApproval?'ghost':'')+'" data-a="send">'+(S.sentForApproval?'Reenviar a aprobación':'Enviar a aprobación')+'</button>' : '')+'</div>'+
+    (pending && S.role==='investigador' && !S.signed ? '<p class="small muted" style="margin:-16px 0 0">'+pending+' sin proponer. Puede enviar igual: quedan fuera del ajuste hasta que se resuelvan.</p>' : '')+
+    '<section class="grid c4" aria-label="Resumen">'+
+      '<div class="card kpi"><span class="k">Con diferencia</span><span class="v">'+st.n+' <span style="font-size:1rem;font-weight:400;font-stretch:100%" class="muted">de 1,284</span></span></div>'+
+      '<div class="card kpi"><span class="k">Faltante</span><span class="v neg">'+money(st.short)+'</span></div>'+
+      '<div class="card kpi"><span class="k">Sobrante</span><span class="v pos">'+money(st.over)+'</span></div>'+
+      '<div class="card kpi"><span class="k">Neto</span><span class="v">'+money(st.net)+'</span></div></section>'+
+    '<section class="card flat pad-s stack g12" aria-labelledby="es"><h2 id="es" class="h3">Estado de las '+st.n+' diferencias</h2>'+
+      '<div class="bar" role="img" aria-label="'+st.doc+' explicadas con documento, '+st.crit+' requieren criterio, '+st.rec+' en recuento, '+st.none+' sin explicar">'+
+        (st.doc?'<div style="flex:'+st.doc+';background:var(--green)"></div>':'')+(st.crit?'<div style="flex:'+st.crit+';background:var(--blue)"></div>':'')+(st.rec?'<div style="flex:'+st.rec+';background:var(--yellow)"></div>':'')+(st.none?'<div style="flex:'+st.none+';background:var(--red)"></div>':'')+'</div>'+
+      '<div class="legend"><span><i class="sw" style="background:var(--green)"></i>'+st.doc+' explicadas con documento</span><span><i class="sw" style="background:var(--blue)"></i>'+st.crit+' requieren criterio</span><span><i class="sw" style="background:var(--yellow);outline:1px solid var(--ink)"></i>'+st.rec+' en recuento</span><span><i class="sw" style="background:var(--red)"></i>'+st.none+' sin explicar</span></div></section>'+
+    '<section class="stack g12" aria-labelledby="lv"><div class="row between g12"><h2 id="lv" class="h2">Por valor <span class="sub">— '+fl.length+' de '+st.n+'</span></h2>'+
+      '<div class="chips" role="group" aria-label="Filtrar">'+[['todas','Todas'],['revisar','Por revisar'],['recuento','En recuento'],['explicadas','Propuestas']].map(function(f){return '<button class="chip" data-a="filter" data-v="'+f[0]+'" aria-pressed="'+(FILTER===f[0])+'">'+f[1]+'</button>';}).join('')+'</div></div>'+
+      '<div class="card tablebox"><table style="min-width:1040px"><thead><tr><th>Artículo</th><th class="r">Sistema</th><th class="r">Físico</th><th class="r">Dif.</th><th class="r">Valor</th><th>Causa propuesta</th><th>Base</th><th>Estado</th></tr></thead><tbody>';
+  fl.forEach(function(c){ var b=baseKind(c), s=statusTag(c), d=diff(c);
+    h+='<tr'+(c.pair?' class="pair"':'')+'><td><a href="#/caso/'+esc(c.id)+'" style="font-weight:700;text-decoration:none">'+esc(c.name)+'</a><div class="mono code">'+esc(c.id)+'</div></td>'+
+      '<td class="r mono num">'+c.sys.toLocaleString('en-US')+'</td><td class="r mono num">'+c.phys.toLocaleString('en-US')+'</td>'+
+      '<td class="r mono num '+cls(d)+'" style="font-weight:600">'+fmtN(d)+'</td><td class="r mono num '+cls(d)+'" style="font-weight:600">'+money(val(c))+'</td>'+
+      '<td><div style="font-weight:650">'+esc(c.status==='cerrada'?'Error de conteo':c.cause)+'</div><div class="xs muted">'+esc(c.summary)+'</div></td>'+
+      '<td><span class="tag '+b.c+'">'+b.t+'</span></td><td><span class="tag '+s.c+'">'+s.t+'</span></td></tr>'; });
+  if(!fl.length) h+='<tr><td colspan="8" class="muted">Ninguna diferencia con este filtro.</td></tr>';
+  h+='</tbody></table></div></section>'+
+    '<section class="card" style="overflow:hidden" aria-labelledby="enc"><div class="pad-s stack g4"><h2 id="enc" class="h2">Encontrados en el conteo <span class="sub">— '+S.foundItems.length+' notas</span></h2><p class="small muted" style="margin:0">Artículos contados que el sistema no reconoce. Primero se buscan contra faltantes parecidos.</p></div><ul class="list">';
+  S.foundItems.forEach(function(f){ h+='<li class="row between start g12" style="padding:14px 20px;border-top:1px solid var(--rule)"><div style="flex:1 1 220px"><strong>'+esc(f.what)+'</strong><div class="mono code">'+esc(f.where)+'</div></div><span class="small" style="flex:2 1 300px">'+esc(f.match)+'</span><span class="tag '+f.t+'">'+esc(f.tag)+'</span></li>'; });
+  return h+'</ul></section></main>';
+}
+
+/* ---------- pantalla 3 ---------- */
+function checksFor(c){
+  var rows=[]; var tf = CAUSES.slice(0,12);
+  tf.forEach(function(cause){
+    var state, why;
+    if(cause===c.cause && c.kind!=='none'){ state='Encontrada'; why=c.found; }
+    else if(cause.indexOf('Transferencia')===0){ state='No verificable'; why='No se subió el archivo de transferencias.'; }
+    else { state='Descartada'; why={
+      'Facturado, no despachado':'Ninguna factura de este artículo sin guía al corte.','Recibido, no registrado':'Todas las recepciones del mes están en el kardex.',
+      'Error de despacho (picking)':'Guías y facturas del mes coinciden en cantidad.','Error al recibir del proveedor':'Recepciones iguales a la guía del proveedor.',
+      'Devolución mal procesada':'Sin notas de crédito con problemas en el mes.','Ajuste sin aprobar':'Sin ajustes manuales desde el último conteo.',
+      'Merma o vencido sin dar de baja':'Sin reportes de daño en el periodo.','Cruce de referencias':'Ningún artículo parecido con la diferencia contraria.',
+      'Error de código o maestro':'Código único y vigente; sin escaneos desconocidos.','Unidad de medida':'La diferencia no es múltiplo de ningún empaque.',
+      'Movimiento durante el corte':'Sin documentos entre 17:00 y 19:00 del 30/09.'}[cause]; }
+    rows.push([state,cause,why]);
+  });
+  rows.push(['No aplica','Lote equivocado','Los archivos no traen lote ni vencimiento.']);
+  return rows;
+}
+function vCaso(id){
+  var c=byId(id)||sortedCases()[0]; var list=sortedCases(); var idx=list.indexOf(c);
+  var prev=list[(idx-1+list.length)%list.length], next=list[(idx+1)%list.length];
+  var d=diff(c), v=val(c), rr=recountRequired(c), ro=recountOutcome(c), b=baseKind(c), s=statusTag(c);
+  var pair=c.pair?byId(c.pair):null;
+  var checks=checksFor(c); var cnt={Encontrada:0,Descartada:0,'No verificable':0,'No aplica':0}; checks.forEach(function(r){cnt[r[0]]++;});
+  var tagFor={Encontrada:'t-g',Descartada:'t-s','No verificable':'t-ys','No aplica':'t-o'};
+  var h=header('caso')+'<main class="wrap page" style="padding-top:28px">'+roleBanner()+
+    '<div class="row between g12 small" style="font-weight:650"><a href="#/diferencias" style="text-decoration:none">← Diferencias</a><span class="muted" style="font-weight:400">Caso '+(idx+1)+' de '+list.length+' · por valor</span></div>'+
+    '<section class="card" style="overflow:hidden" aria-labelledby="art"><div class="pad row between start g12"><div><h1 id="art" class="display" style="font-size:clamp(2rem,4.2vw,2.8rem)">'+esc(c.name)+'</h1><p class="mono small muted" style="margin:8px 0 0">'+esc(c.id)+' · '+esc(c.loc)+' · costo '+money(c.cost,false)+'</p></div><div class="row g8">'+(rr&&!ro?'<span class="tag t-y">Recuento obligatorio</span>':'')+'<span class="tag '+s.c+'">'+s.t+'</span></div></div>'+
+      '<div class="grid c4" style="gap:0;border-top:1.5px solid var(--ink)">'+
+        [['Sistema',c.sys.toLocaleString('en-US'),''],['Físico',c.phys.toLocaleString('en-US'),''],['Diferencia',fmtN(d),cls(d)],['Valor',money(v),cls(v)]].map(function(k,i){return '<div class="stack g4" style="padding:14px 22px;'+(i?'border-left:1px solid var(--rule)':'')+'"><span class="xs muted" style="font-weight:650">'+k[0]+'</span><span class="mono num '+k[2]+'" style="font-size:1.6rem;font-weight:600">'+k[1]+'</span></div>';}).join('')+
+      '</div></section>'+
+    '<div class="main-side"><div class="main">'+
+    '<section class="card pad stack g12" style="box-shadow:4px 4px 0 var(--blue)" aria-labelledby="cp"><div class="row g10"><h2 id="cp" class="mono xs" style="margin:0;color:var(--blue);font-weight:600">'+(c.status==='cerrada'?'Resultado':'Conclusión propuesta')+'</h2><span class="tag '+b.c+'">'+(c.kind==='doc'?'Con documento':c.kind==='criterio'?'Requiere criterio':'Sin documento')+'</span></div>'+
+      '<p style="margin:0;font-size:1.9rem;line-height:1.05;font-weight:800;font-stretch:72%">'+esc(c.status==='cerrada'?'Error de conteo: se cierra sin ajuste':c.cause+(pair?' con '+pair.name.split(',')[0].replace('Pintura látex ',''):''))+'</p>'+
+      '<p style="margin:0;max-width:68ch">'+esc(c.status==='cerrada'?'El recuento dio lo mismo que el sistema. La diferencia fue del conteo, no del inventario.':c.explain)+'</p>';
+  if(c.status!=='cerrada'){
+    h+='<div class="card flat pad-s stack g8" style="background:var(--cream)"><strong class="small">Ajuste propuesto</strong><div class="mini mono">'+
+      '<span>'+esc(c.id)+'</span><span class="'+cls(finalQty(c))+'">'+fmtN(finalQty(c))+'</span><span class="'+cls(finalVal(c))+'">'+money(finalVal(c))+'</span>'+
+      (pair?'<span>'+esc(pair.id)+'</span><span class="'+cls(finalQty(pair))+'">'+fmtN(finalQty(pair))+'</span><span class="'+cls(finalVal(pair))+'">'+money(finalVal(pair))+'</span><span style="font-weight:600">Neto del par</span><span></span><span style="font-weight:600">'+money(finalVal(c)+finalVal(pair))+'</span>':'')+
+      '</div><span class="xs muted">Categoría contable sugerida: '+esc(CATEGORY[c.cause])+'. La confirma su contador.</span></div>';
+  }
+  if(rr && !ro) h+='<div class="note row between g10"><span><strong>Recuento obligatorio.</strong> '+(c.kind==='none'?'Ningún documento explica la diferencia.':'Depende de criterio y pasa de $'+S.threshold+'.')+' Recontar en '+esc(c.loc)+'.</span><a href="#/recuento" style="font-weight:700">Ir a recuento →</a></div>';
+  if(ro) h+='<div class="note" style="background:'+(ro==='sistema'?'var(--green-soft)':'var(--blue-soft)')+'">Recuento: <strong class="mono">'+esc(c.recount)+'</strong> — '+(ro==='sistema'?'igual al sistema, fue error de conteo.':ro==='conteo'?'igual al conteo, la diferencia es real.':'otro número; el ajuste usa el recuento y lo decide quien aprueba.')+'</div>';
+  if(c.approval==='devuelta') h+='<div class="note" style="background:var(--red-soft)"><strong>Devuelta por quien aprueba:</strong> '+esc(c.returnNote||'sin comentario')+'</div>';
+  h+='</section>'+
+    '<section class="card flat pad stack g8" aria-labelledby="cr"><h2 id="cr" class="h2">Causas revisadas <span class="sub">— '+cnt.Encontrada+' encontrada, '+cnt.Descartada+' descartadas, '+cnt['No verificable']+' no verificable, '+cnt['No aplica']+' no aplica</span></h2><ul class="list">';
+  checks.forEach(function(r){ h+='<li class="check-row"><span class="tag '+tagFor[r[0]]+'" style="justify-self:start">'+r[0]+'</span><div><div style="font-weight:700">'+r[1]+'</div><div class="small muted">'+esc(r[2])+'</div></div></li>'; });
+  h+='</ul></section>'+
+    '<section class="card flat pad stack g8" aria-labelledby="ev"><h2 id="ev" class="h2">Evidencia</h2><div class="tablebox"><table style="min-width:560px"><thead><tr><th style="padding-left:0">Fuente</th><th>Referencia</th><th>Detalle</th></tr></thead><tbody>';
+  c.evidence.forEach(function(e){ h+='<tr><td style="padding-left:0;font-weight:650">'+esc(e[0])+'</td><td class="mono small" style="white-space:nowrap">'+esc(e[1])+'</td><td class="small">'+esc(e[2])+'</td></tr>'; });
+  h+='</tbody></table></div></section></div><aside class="side">';
+  if(S.role==='investigador'){
+    var can=canPropose(c) && c.status!=='cerrada' && !S.signed;
+    h+='<section class="card pad stack g12" aria-labelledby="pp"><h2 id="pp" class="h2">Su propuesta</h2><p class="small muted" style="margin:0">Usted propone la causa. '+(selfApproval()?'Usted mismo firmará al final; el informe lo indicará.':'La aprueba '+esc(S.approver.split(' · ')[0])+' al final del cierre.')+'</p>';
+    if(c.status==='propuesta' && c.approval!=='devuelta'){
+      h+='<p class="note small" style="margin:0;background:var(--green-soft)">Propuesta enviada'+(c.proposedBy==='auto'?' (con documento)':' por '+esc(c.proposedBy))+'. Puede cambiarla mientras no se firme.</p>';
+    }
+    h+='<div class="field"><label for="cause">Causa</label><select id="cause" class="input" data-a="cause" data-id="'+esc(c.id)+'"'+(c.status==='cerrada'||S.signed?' disabled':'')+'>'+CAUSES.map(function(x){return '<option'+(x===c.cause?' selected':'')+'>'+x+'</option>';}).join('')+'</select>'+(c.cause!==c.originalCause?'<span class="hint">Sugerida por Zeli: '+esc(c.originalCause)+'. El cambio queda registrado.</span>':'')+'</div>'+
+      '<div class="field"><label for="note">Nota para quien aprueba</label><textarea id="note" class="input" rows="3" data-a="note" data-id="'+esc(c.id)+'" placeholder="Ej.: confirmado en el pasillo"'+(S.signed?' disabled':'')+'>'+esc(c.note)+'</textarea></div>'+
+      '<button class="btn block" data-a="propose" data-id="'+esc(c.id)+'"'+(can?'':' disabled')+'>'+(c.status==='propuesta'&&c.approval!=='devuelta'?'Actualizar propuesta':'Proponer esta conclusión')+'</button>'+
+      (!can && c.status!=='cerrada' && !S.signed?'<span class="hint" style="margin-top:-6px">Se habilita con el resultado del recuento.</span>':'')+
+      '<p class="xs muted" style="margin:0;border-top:1px solid var(--rule);padding-top:12px">Cada propuesta, cambio y aprobación queda registrado con nombre y hora. Así se mide, causa por causa, qué tan seguido acierta la sugerencia.</p></section>';
+  } else {
+    h+='<section class="card pad stack g10"><h2 class="h2">Quien aprueba</h2><p class="small" style="margin:0">Las propuestas las hace quien investiga. Usted acepta o devuelve los casos en la aprobación.</p><a class="btn block" href="#/aprobacion">Ir a aprobación</a></section>';
+  }
+  h+='<div class="row between small" style="font-weight:650"><a href="#/caso/'+esc(prev.id)+'" style="text-decoration:none">← Anterior</a><a href="#/caso/'+esc(next.id)+'" style="text-decoration:none">Siguiente →</a></div></aside></div></main>';
+  return h;
+}
+
+/* ---------- pantalla 4 ---------- */
+function vRecuento(){
+  var req=sortedCases().filter(function(c){ return recountRequired(c) || recountOutcome(c); });
+  var byLoc={}; req.forEach(function(c){ (byLoc[c.loc]=byLoc[c.loc]||[]).push(c); });
+  var locs=Object.keys(byLoc).sort();
+  var done=req.filter(function(c){return recountOutcome(c);}).length;
+  var h=header('recuento')+'<main class="wrap page">'+roleBanner()+
+    '<div><h1 class="display">Recuento</h1><p class="lede">'+req.length+' casos no se pueden proponer sin recontar. La lista sale agrupada por ubicación'+(S.rules.blind?' y sin la cantidad esperada':'')+'.</p></div>'+
+    '<div class="main-side" style="flex-direction:row-reverse"><div class="main">'+
+    '<section class="card" style="overflow:hidden" aria-labelledby="rs"><div class="pad-s row between g10"><h2 id="rs" class="h2">Resultados</h2><span class="tag t-ys">'+done+' de '+req.length+' con resultado</span></div>'+
+    '<div class="tablebox"><table style="min-width:760px"><thead><tr><th>Artículo</th><th class="r">Sistema</th><th class="r">Conteo</th><th class="r">Recuento</th><th>Qué significa</th></tr></thead><tbody>';
+  req.forEach(function(c){ var o=recountOutcome(c);
+    var mean = o==='sistema'?['Igual al sistema','t-g','Error de conteo: se cierra sin ajuste.']:o==='conteo'?['Igual al conteo','t-b',c.kind==='none'?'Sin documento que lo explique: queda como faltante real.':'Confirma la diferencia; ya se puede proponer.']:o==='otro'?['Otro número','t-r','Segundo recuento, o lo decide quien aprueba.']:['Pendiente','t-s','Recontar en '+c.loc+'.'];
+    h+='<tr><td><strong>'+esc(c.name)+'</strong><div class="mono code">'+esc(c.id)+'</div></td><td class="r mono num">'+c.sys.toLocaleString('en-US')+'</td><td class="r mono num">'+c.phys.toLocaleString('en-US')+'</td>'+
+      '<td class="r"><label class="sr" for="rc-'+esc(c.id)+'">Recuento de '+esc(c.name)+'</label><input id="rc-'+esc(c.id)+'" class="input sm mono recount-in" inputmode="numeric" data-a="recount" data-id="'+esc(c.id)+'" value="'+(c.recount==null?'':esc(c.recount))+'" placeholder="—"'+(S.signed||S.role!=='investigador'?' disabled':'')+'></td>'+
+      '<td><span class="tag '+mean[1]+'">'+mean[0]+'</span><div class="xs muted" style="margin-top:6px">'+esc(mean[2])+'</div></td></tr>'; });
+  if(!req.length) h+='<tr><td colspan="5" class="muted">No hay recuentos pendientes.</td></tr>';
+  h+='</tbody></table></div></section>'+
+    '<section class="card flat pad grid c3" style="gap:16px" aria-labelledby="cl"><h2 id="cl" class="h3" style="grid-column:1/-1">Cómo se lee un recuento</h2>'+
+      '<div class="stack g6 small"><span class="tag t-g" style="align-self:flex-start">Igual al sistema</span>Fue un error de conteo. El caso se cierra sin ajuste.</div>'+
+      '<div class="stack g6 small"><span class="tag t-b" style="align-self:flex-start">Igual al conteo</span>La diferencia es real. Sigue la causa propuesta, o faltante real si no hay otra.</div>'+
+      '<div class="stack g6 small"><span class="tag t-r" style="align-self:flex-start">Otro número</span>Segundo recuento, o lo decide quien aprueba.</div></section>'+
+    '</div><aside class="side"><section class="card dark pad stack g16" aria-labelledby="pl"><div><span class="mono xs" style="color:var(--yellow)">Lista para el piso'+(S.rules.blind?' · recuento ciego':'')+'</span><h2 id="pl" class="h2" style="margin-top:4px">'+locs.length+' ubicaciones, '+req.length+' artículos</h2></div><ul class="list">';
+  locs.forEach(function(l){ h+='<li style="border-color:#3A443D"><span class="mono small" style="color:var(--yellow);font-weight:600">'+esc(l)+'</span><div>'+byLoc[l].map(function(c){return esc(c.name)+(S.rules.blind?'':' <span class="mono xs" style="color:#C9BFA9">(sistema '+c.sys+')</span>');}).join('<br>')+'</div></li>'; });
+  h+='</ul><div class="row g10"><button class="btn yellow sm" data-a="soon">Enviar al teléfono</button><button class="btn ghost-light sm" data-a="printlist">Imprimir lista</button></div></section></aside></div></main>';
+  return h;
+}
+
+/* ---------- pantalla 5 ---------- */
+function vAprobacion(){
+  var seen={}; var att=sortedCases().filter(function(c){ if(!needsAttention(c) || seen[c.id]) return false; if(c.pair) seen[c.pair]=1; return true; });
+  var docOk=S.cases.filter(function(c){return c.status==='propuesta' && !needsAttention(c);});
+  var closed=S.cases.filter(function(c){return c.status==='cerrada';});
+  var out=S.cases.filter(function(c){return c.status!=='propuesta'&&c.status!=='cerrada';});
+  var pendingAtt=att.filter(function(c){return !c.approval;}).length;
+  var loss=0, rec=0; S.cases.forEach(function(c){ if(inAdjustment(c) && c.approval!=='devuelta'){ if(c.cause==='Faltante real'||c.cause==='Merma o vencido sin dar de baja') loss+=finalVal(c); else rec++; }});
+  var cats={}; S.cases.forEach(function(c){ if(inAdjustment(c) && c.approval!=='devuelta'){ var k=CATEGORY[c.cause]; cats[k]=(cats[k]||0)+finalVal(c);} });
+  var self=selfApproval();
+  var h=header('aprobacion')+'<main class="wrap page">'+
+    '<div class="stack g12"><h1 class="display">Aprobar el cierre</h1><p class="lede" style="margin:0">'+esc(S.investigator)+' investigó las '+S.cases.length+' diferencias. Revise lo que necesita criterio; el resto viene respaldado por documentos.</p>'+
+    '<span class="tag '+(self?'t-ys':'t-g')+'" style="align-self:flex-start">'+(self?'Investiga y aprueba la misma persona · sin separación de funciones':'Investigó '+esc(S.investigator)+' · aprueba '+esc(S.approver.split(' · ')[0])+' · funciones separadas')+'</span></div>'+
+    (!S.sentForApproval && !S.signed ? '<div class="note">Quien investiga todavía no ha enviado el cierre. Puede revisar, pero lo normal es firmar después del envío.</div>' : '')+
+    '<section class="grid c4" aria-label="Resumen">'+
+      '<div class="card kpi"><span class="k">Ajuste neto</span><span class="v">'+money(adjTotal())+'</span><span class="xs muted">'+out.length+' caso(s) quedan fuera</span></div>'+
+      '<div class="card kpi"><span class="k">Pérdida real y merma</span><span class="v neg">'+money(loss)+'</span><span class="xs muted">Sin documento que la explique, o merma</span></div>'+
+      '<div class="card kpi"><span class="k">Errores de registro y otros</span><span class="v pos">'+rec+'</span><span class="xs muted">Corregidos con documento o criterio</span></div>'+
+      '<div class="card kpi"><span class="k">Su atención</span><span class="v" style="color:var(--blue)">'+att.length+'</span><span class="xs muted">'+pendingAtt+' sin decidir</span></div></section>'+
+    '<div class="main-side"><div class="main"><h2 class="h2">Requieren su atención <span class="sub">— '+att.length+' casos</span></h2>';
+  if(!att.length) h+='<p class="card flat pad-s small" style="margin:0">Nada pendiente de criterio. Las propuestas llegarán aquí cuando quien investiga las haga.</p>';
+  att.forEach(function(c){ var why = c.cause==='Faltante real' ? ['Faltante real','t-r','Ningún documento explica la diferencia y el recuento la confirmó.'] :
+      c.cause!==c.originalCause ? ['Causa cambiada','t-ys','Zeli sugirió '+c.originalCause.toLowerCase()+'; quien investiga la cambió a '+c.cause.toLowerCase()+'.'] :
+      recountOutcome(c)==='otro' ? ['Recuento distinto','t-r','El recuento dio otro número ('+c.recount+'); el ajuste usa el recuento.'] : ['Requiere criterio','t-b',c.explain];
+    var ap = c.approval==='aceptada' ? '<span class="tag t-g">Aceptada</span>' : c.approval==='devuelta' ? '<span class="tag t-r">Devuelta</span>' : '';
+    h+='<article class="card pad stack g10"><div class="row between start g10"><div class="row g8"><span class="tag '+why[1]+'">'+why[0]+'</span>'+ap+'</div><span class="mono num '+cls(finalVal(c))+'" style="font-weight:600">'+money(finalVal(c))+'</span></div>'+
+      '<h3 class="h3" style="font-size:1.35rem">'+esc(c.name)+' · '+fmtN(finalQty(c))+'</h3><p class="small" style="margin:0">'+esc(why[2])+'</p>'+
+      (c.note?'<p class="xs muted" style="margin:0">Nota de quien investiga: '+esc(c.note)+'</p>':'')+
+      (S.role==='aprobador' && !S.signed && !c.approval ? '<div class="field"><label for="rn-'+esc(c.id)+'">Comentario (si la devuelve)</label><input id="rn-'+esc(c.id)+'" class="input sm" placeholder="Ej.: confirmar con el cliente antes de ajustar"></div>' : '')+
+      (S.role==='aprobador' && !S.signed && !c.approval ? '<div class="row g10" style="margin-top:4px"><button class="btn sm" data-a="accept" data-id="'+esc(c.id)+'">Aceptar</button><button class="btn ghost sm" data-a="return" data-id="'+esc(c.id)+'">Devolver con comentario</button><a class="small" href="#/caso/'+esc(c.id)+'" style="font-weight:650;padding:8px 4px">Ver evidencia</a></div>' :
+        '<a class="small" href="#/caso/'+esc(c.id)+'" style="font-weight:650">Ver evidencia</a>')+'</article>'; });
+  h+='<section class="card flat pad-s row between g10"><div><h2 class="h3">Respaldadas por documento — '+docOk.length+' casos</h2><p class="small muted" style="margin:4px 0 0">Facturas, guías, recepciones y notas de crédito que explican cada una.'+(closed.length?' '+closed.length+' se cerró por error de conteo.':'')+'</p></div><a href="#/diferencias" class="small" style="font-weight:700">Ver lista →</a></section>';
+  if(out.length) h+='<section class="card dash pad-s stack g6"><h2 class="h3">Fuera de este ajuste — '+out.length+'</h2><p class="small muted" style="margin:0">'+out.map(function(c){return esc(c.name);}).join(', ')+'. Siguen sin propuesta o en recuento; pasan abiertos al próximo conteo.</p></section>';
+  h+='</div><aside class="side"><section class="card flat pad stack g8" aria-labelledby="ec"><h2 id="ec" class="h3">Efecto contable sugerido</h2><ul class="list small">';
+  Object.keys(cats).forEach(function(k){ h+='<li class="row between g10"><span>'+esc(k)+'</span><span class="mono num '+cls(cats[k])+'" style="font-weight:600">'+money(cats[k])+'</span></li>'; });
+  h+='</ul><span class="xs muted">Es una sugerencia por categoría. Las cuentas y el asiento los define su contador.</span></section>';
+  if(S.signed){
+    h+='<section class="card dark pad stack g10"><h2 class="h2">Firmado</h2><p class="small" style="margin:0">'+esc(S.signed.by)+' · '+esc(S.signed.at)+'</p><a class="btn yellow block" href="#/ajuste">Ver archivo de ajuste</a></section>';
+  } else if(S.role==='aprobador'){
+    var ready=pendingAtt===0;
+    h+='<section class="card dark pad stack g12" aria-labelledby="fi"><h2 id="fi" class="h2">Firmar</h2><p class="small" style="margin:0">'+(out.length?out.length+' caso(s) quedan fuera del ajuste y pasan al próximo conteo. ':'')+(ready?'Todos los casos de atención están decididos.':'Decida los '+pendingAtt+' casos de atención para firmar.')+'</p>'+
+      '<label class="check"><input type="checkbox" id="ack"'+(ready?'':' disabled')+'> Revisé los casos que requieren mi atención y apruebo el ajuste</label>'+
+      '<button class="btn yellow block" data-a="sign"'+(ready?'':' disabled')+'>Firmar cierre</button>'+
+      '<button class="btn ghost-light block" data-a="returnall">Devolver todo a quien investiga</button></section>';
+  } else {
+    h+='<section class="card dark pad stack g10"><h2 class="h2">Firma</h2><p class="small" style="margin:0">Firma '+esc(self?S.investigator+' (usted mismo)':S.approver.split(' · ')[0])+'. '+(S.sentForApproval?'Ya se le envió el enlace.':'Envíe el cierre desde Diferencias.')+'</p>'+
+      (self?'<button class="btn yellow block" data-a="role" data-v="aprobador">Revisar y firmar yo mismo</button>':'<button class="btn ghost-light block" data-a="role" data-v="aprobador">Ver como quien aprueba (ejemplo)</button>')+'</section>';
+  }
+  return h+'</aside></div></main>';
+}
+
+/* ---------- pantalla 6 ---------- */
+function adjLines(){ return sortedCases().filter(function(c){ return inAdjustment(c) && c.approval!=='devuelta'; }); }
+function vAjuste(){
+  var h=header('ajuste')+'<main class="wrap page">';
+  if(!S.signed){
+    return h+'<div><h1 class="display">Archivo de ajuste</h1><p class="lede">Se habilita cuando quien aprueba firma el cierre.</p></div><div class="card pad stack g12" style="max-width:640px"><p style="margin:0">Mientras tanto, el ajuste neto propuesto es <strong class="mono">'+money(adjTotal())+'</strong>.</p><a class="btn" href="#/aprobacion" style="align-self:flex-start">Ir a aprobación</a></div></main>';
+  }
+  var lines=adjLines(); var out=S.cases.filter(function(c){return c.status!=='propuesta'&&c.status!=='cerrada';});
+  var accepted=S.cases.filter(function(c){return c.status==='propuesta' && c.cause===c.originalCause && c.approval!=='devuelta';}).length;
+  var proposed=S.cases.filter(function(c){return c.status==='propuesta';}).length;
+  h+='<div class="row between end g16"><div><h1 class="display">Archivo de ajuste</h1><p class="lede">Firmado por '+esc(S.signed.by)+' · '+esc(S.signed.at)+' · investigó '+esc(S.investigator)+'</p></div><span class="stamp">FIRMADO</span></div>'+
+    (selfApproval()?'<p class="note" style="margin:0">Investigó y aprobó la misma persona. El informe lo indica como “sin separación de funciones”.</p>':'')+
+    '<div class="main-side"><div class="main"><section class="card" style="overflow:hidden" aria-labelledby="la"><div class="pad-s"><h2 id="la" class="h2">Líneas aprobadas <span class="sub">— '+lines.length+'</span></h2></div><div class="tablebox"><table style="min-width:860px"><thead><tr><th>Artículo</th><th class="r">Ajuste</th><th class="r">Valor</th><th>Causa · respaldo</th><th>Categoría sugerida</th></tr></thead><tbody>';
+  lines.forEach(function(c){ var q=finalQty(c), v=finalVal(c);
+    h+='<tr><td><strong>'+esc(c.name)+'</strong><div class="mono code">'+esc(c.id)+'</div></td><td class="r mono num '+cls(q)+'" style="font-weight:600">'+fmtN(q)+'</td><td class="r mono num '+cls(v)+'" style="font-weight:600">'+money(v)+'</td><td><div style="font-weight:650">'+esc(c.cause)+'</div><div class="xs muted">'+esc(c.summary)+(c.cause!==c.originalCause?' · causa cambiada por quien investiga':'')+'</div></td><td class="small">'+esc(CATEGORY[c.cause])+'</td></tr>'; });
+  h+='</tbody></table></div></section>'+
+    (out.length?'<section class="card dash pad-s stack g6"><h2 class="h3">Fuera de este ajuste — '+out.length+'</h2><p class="small muted" style="margin:0">'+out.map(function(c){return esc(c.name);}).join(', ')+'. Pasan abiertos al próximo conteo.</p></section>':'')+
+    '</div><aside class="side"><section class="card pad stack g12" aria-labelledby="dl"><h2 id="dl" class="h2">Descargar</h2><div class="stack g4" style="padding-bottom:12px;border-bottom:1px solid var(--rule)"><span class="xs muted" style="font-weight:650">Ajuste neto firmado</span><span class="mono num" style="font-size:1.8rem;font-weight:600">'+money(adjTotal())+'</span></div>'+
+      '<button class="btn block" data-a="csv">Archivo de ajuste (CSV para Excel)</button><button class="btn ghost block" data-a="csvimp">CSV para importar al ERP</button><button class="btn ghost block" data-a="report">Informe de cierre (imprimir o PDF)</button>'+
+      '<p class="xs muted" style="margin:0">El informe lista cada diferencia con su causa, sus documentos, quién la propuso y quién la firmó'+(S.account==='firma'?', con el nombre de '+esc(S.firm):'')+'.</p><p class="note xs" style="margin:0">Este archivo no modifica su sistema. Impórtelo o regístrelo en su ERP como cualquier ajuste.</p></section>'+
+    (S.account==='firma'?'<section class="card dark pad stack g8"><span class="mono xs" style="color:var(--yellow)">Para usted, consultor</span><h2 class="h3" style="font-size:1.4rem">'+accepted+' de '+proposed+' causas sugeridas aceptadas sin cambios</h2><p class="small" style="margin:0">Con más cierres, cada causa muestra qué tan seguido acierta.</p></section>':'')+
+    '</aside></div></main>';
+  return h;
+}
+
+/* ---------- informe imprimible ---------- */
+function buildReport(listOnly){
+  var r=document.getElementById('report');
+  if(listOnly){
+    var req=sortedCases().filter(function(c){ return recountRequired(c) && !recountOutcome(c); });
+    r.innerHTML='<h1 style="font-size:20pt;margin:0 0 4px">Lista de recuento</h1><p>'+esc(S.company)+' · '+esc(S.closeName)+' · corte '+esc(S.cutoff)+'</p><table><thead><tr><th>Ubicación</th><th>Código</th><th>Artículo</th>'+(S.rules.blind?'':'<th>Sistema</th>')+'<th>Recuento</th></tr></thead><tbody>'+
+      req.map(function(c){return '<tr><td>'+esc(c.loc)+'</td><td>'+esc(c.id)+'</td><td>'+esc(c.name)+'</td>'+(S.rules.blind?'':'<td>'+c.sys+'</td>')+'<td style="width:30mm">&nbsp;</td></tr>';}).join('')+'</tbody></table>';
+    return;
+  }
+  var lines=adjLines();
+  r.innerHTML='<h1 style="font-size:20pt;margin:0 0 4px">Informe de cierre de conteo</h1>'+
+    '<p style="margin:0 0 2px">'+esc(S.company)+' · '+esc(S.closeName)+' · corte '+esc(S.cutoff)+'</p>'+
+    '<p style="margin:0 0 2px">Investigó: '+esc(S.investigator)+(S.account==='firma'?' ('+esc(S.firm)+')':'')+' · Firmó: '+esc(S.signed?S.signed.by:'—')+' · '+esc(S.signed?S.signed.at:'')+'</p>'+
+    (selfApproval()?'<p style="margin:0 0 2px"><strong>Sin separación de funciones:</strong> investigó y aprobó la misma persona.</p>':'')+
+    '<p style="margin:8px 0">Ajuste neto: <strong>'+money(adjTotal())+'</strong></p>'+
+    '<table><thead><tr><th>Código</th><th>Artículo</th><th>Ajuste</th><th>Valor</th><th>Causa</th><th>Respaldo</th><th>Categoría</th></tr></thead><tbody>'+
+    lines.map(function(c){return '<tr><td>'+esc(c.id)+'</td><td>'+esc(c.name)+'</td><td>'+fmtN(finalQty(c))+'</td><td>'+money(finalVal(c))+'</td><td>'+esc(c.cause)+'</td><td>'+esc(c.summary)+'</td><td>'+esc(CATEGORY[c.cause])+'</td></tr>';}).join('')+'</tbody></table>'+
+    '<h2 style="font-size:13pt;margin:14px 0 4px">Registro</h2><ul style="font-size:9.5pt">'+S.log.map(function(l){return '<li>'+esc(l.at)+' · '+esc(l.by)+' · '+esc(l.t)+'</li>';}).join('')+'</ul>';
+}
+function csv(rows){ return rows.map(function(r){ return r.map(function(x){ x=String(x==null?'':x); return /[",\n;]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x; }).join(','); }).join('\r\n'); }
+function download(name, text){ try{ var b=new Blob(['﻿'+text],{type:'text/csv;charset=utf-8'}); var u=URL.createObjectURL(b); var a=document.createElement('a'); a.href=u; a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(u); a.remove();},500); toast('Descargado: '+name); }catch(e){ toast('No se pudo descargar en este navegador'); } }
+
+/* ---------- router ---------- */
+function route(){
+  var h=location.hash.replace(/^#\/?/,'');
+  if(h==='inicio'||h==='pasos'||h==='datos'||h==='piloto') h='';
+  var p=h.split('/'); var v;
+  switch(p[0]){
+    case 'archivos': v=vArchivos(); break;
+    case 'diferencias': v=vDiferencias(); break;
+    case 'caso': v=vCaso(decodeURIComponent(p[1]||'')); break;
+    case 'recuento': v=vRecuento(); break;
+    case 'aprobacion': v=vAprobacion(); break;
+    case 'ajuste': v=vAjuste(); break;
+    default: v=vHome();
+  }
+  document.getElementById('root').innerHTML=v;
+  var titles={archivos:'Archivos',diferencias:'Diferencias',caso:'Revisión',recuento:'Recuento',aprobacion:'Aprobación',ajuste:'Ajuste'};
+  document.title='Zeli Inventory — '+(titles[p[0]]||(S.account==='firma'?'Clientes':'Mis cierres'));
+}
+function go(hash){ if(location.hash===hash) route(); else location.hash=hash; }
+window.addEventListener('hashchange', function(){ route(); window.scrollTo(0,0); });
+
+/* ---------- acciones ---------- */
+document.addEventListener('click', function(e){
+  var t=e.target.closest('[data-a]'); if(!t || t.disabled) return;
+  var a=t.getAttribute('data-a'), id=t.getAttribute('data-id'), v=t.getAttribute('data-v'), c=id?byId(id):null;
+  switch(a){
+    case 'account': S.account=v; S.investigator = v==='firma'?S.firm:'Ana Torres · Encargada de bodega'; save(); route(); break;
+    case 'role': S.role=v; save(); go(v==='aprobador'?'#/aprobacion':'#/diferencias'); toast(v==='aprobador'?'Entró como quien aprueba':'Entró como quien investiga'); break;
+    case 'reset': try{localStorage.removeItem(KEY);}catch(x){} S=seed(); FILTER='todas'; go('#/'); toast('Ejemplo reiniciado'); break;
+    case 'filter': FILTER=v; route(); break;
+    case 'soon': toast('Disponible en la siguiente versión'); break;
+    case 'propose':
+      if(!canPropose(c)) return;
+      var wasProp=c.status==='propuesta';
+      c.status='propuesta'; c.proposedBy=who(); c.approval=null;
+      if(c.pair){ var pr=byId(c.pair); if(pr && pr.status!=='propuesta'){ pr.status='propuesta'; pr.proposedBy=who(); pr.cause=c.cause==='Cruce de referencias'?'Cruce de referencias':pr.cause; pr.approval=null; } }
+      logIt((wasProp?'Actualizó':'Propuso')+' '+c.id+': '+c.cause); save(); toast('Propuesta registrada'); go('#/caso/'+firstOpenCase()); break;
+    case 'accept': c.approval='aceptada'; if(c.pair){var p2=byId(c.pair); if(p2) p2.approval='aceptada';} logIt('Aceptó '+c.id); save(); route(); break;
+    case 'return':
+      var inp=document.getElementById('rn-'+c.id); var msg=inp?inp.value.trim():'';
+      c.approval='devuelta'; c.returnNote=msg; if(c.pair){var p3=byId(c.pair); if(p3){p3.approval='devuelta'; p3.returnNote=msg;}} logIt('Devolvió '+c.id+(msg?': '+msg:'')); save(); route(); break;
+    case 'returnall': S.sentForApproval=false; logIt('Devolvió el cierre completo'); save(); toast('Cierre devuelto a quien investiga'); route(); break;
+    case 'sign':
+      var ack=document.getElementById('ack'); if(!ack || !ack.checked){ toast('Marque la casilla de revisión para firmar'); ack&&ack.focus(); return; }
+      S.signed={by:S.approver.split(' · ')[0] + (selfApproval()?' (misma persona que investiga)':''), at:now()}; logIt('Firmó el cierre'); save(); go('#/ajuste'); toast('Cierre firmado'); break;
+    case 'send': S.sentForApproval=true; logIt('Envió el cierre a aprobación'); save(); toast(selfApproval()?'Listo para que usted mismo lo firme':'Enlace enviado a '+S.approver.split(' · ')[0]); go('#/aprobacion'); break;
+    case 'csv':
+      download('ajuste_'+S.company.replace(/\W+/g,'_')+'.csv', csv([['Código','Artículo','Ubicación','Sistema','Físico','Ajuste','Costo','Valor','Causa','Respaldo','Categoría sugerida','Propuso','Firmó']].concat(adjLines().map(function(c){return [c.id,c.name,c.loc,c.sys,c.phys,finalQty(c),c.cost.toFixed(2),finalVal(c).toFixed(2),c.cause,c.summary,CATEGORY[c.cause],c.proposedBy==='auto'?S.investigator:c.proposedBy,S.signed?S.signed.by:''];})))); break;
+    case 'csvimp':
+      download('ajuste_importar.csv', csv([['codigo','cantidad','costo_unitario','motivo']].concat(adjLines().map(function(c){return [c.id,finalQty(c),c.cost.toFixed(2),c.cause];})))); break;
+    case 'report': buildReport(false); window.print(); break;
+    case 'printlist': buildReport(true); window.print(); break;
+  }
+});
+document.addEventListener('change', function(e){
+  var t=e.target;
+  if(t.hasAttribute('data-rule')){ S.rules[t.getAttribute('data-rule')]=t.checked; save(); return; }
+  if(t.getAttribute('data-a')==='cause'){ var c=byId(t.getAttribute('data-id')); c.cause=t.value; if(c.cause==='Faltante real' && c.kind==='doc'){} logIt('Cambió la causa de '+c.id+' a '+c.cause); save(); route(); return; }
+  if(t.getAttribute('data-a')==='recount'){ var r=byId(t.getAttribute('data-id')); var raw=t.value.replace(/[^\d]/g,''); r.recount= raw===''?null:Number(raw);
+    var o=recountOutcome(r);
+    if(o==='sistema'){ r.status='cerrada'; logIt('Recuento de '+r.id+': '+raw+' (igual al sistema, error de conteo)'); }
+    else { if(r.status==='cerrada') r.status = r.kind==='doc'?'propuesta':'revisar'; if(o) logIt('Recuento de '+r.id+': '+raw); }
+    save(); route(); var nx=document.getElementById('rc-'+r.id); return; }
+  if(t.getAttribute('data-a')==='file'){ toast('En esta versión se usa el archivo de ejemplo'); t.value=''; return; }
+});
+document.addEventListener('input', function(e){
+  var t=e.target; var f=t.getAttribute('data-f');
+  if(f){ if(f==='threshold'){ var n=Number(t.value.replace(/[^\d.]/g,'')); if(!isNaN(n)&&n>0) S.threshold=n; } else S[f]=t.value; save(); return; }
+  if(t.getAttribute('data-a')==='note'){ var c=byId(t.getAttribute('data-id')); c.note=t.value; save(); }
+});
+
+route();
+})();
+</script>
+</body>
+</html>

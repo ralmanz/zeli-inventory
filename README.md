@@ -1,5 +1,55 @@
 # Zeli Inventory
 
+Cierre de conteo de inventario: sube el conteo físico y los saldos del sistema, cruza, explica cada diferencia con su documento, exige recuento donde hace falta, pasa a aprobación por enlace privado y entrega el archivo de ajuste firmado.
+
+## Qué hay en este repositorio
+
+| Ruta | Qué es |
+|---|---|
+| `/` | **La aplicación** (React en `src/app`, API en `server/`) |
+| `/demo/` | El demo estático para mostrar (`public/demo/index.html`), sin servidor ni datos reales |
+| `/landing.html` | La página de inicio anterior |
+| `/ejemplo/*.csv` | Archivos de ejemplo con 14 diferencias sembradas (`npm run sample` los regenera) |
+| `src/shared/` | Lógica compartida entre navegador y servidor (estados, reglas de recuento, ajuste) |
+| `server/engine.js` | El cruce y las 12 causas revisadas (determinístico) |
+| `demo/` (raíz) | Piloto anterior en Python, no se despliega |
+
+## Correr en local
+
+```bash
+npm install
+npm run build && npm start      # http://localhost:8787 (base de datos local en ./.data)
+# o, para desarrollar el frontend con recarga:
+npm run dev:server   # API en :8787
+npm run dev          # Vite en :5173, /api va al servidor
+```
+
+Sin `RESEND_API_KEY`, la pantalla de entrada muestra el enlace de acceso directamente (solo en desarrollo o con `SHOW_LOGIN_LINK=1`).
+
+Pruebas: `npm test` (motor contra los ejemplos) y, con el servidor corriendo, `node scripts/smoke-api.mjs` (flujo completo por API).
+
+## Variables de entorno
+
+| Variable | Para qué |
+|---|---|
+| `DATABASE_URL` | Postgres (Railway). Si falta, usa PGlite en `./.data/pglite` |
+| `NODE_ENV=production` | Cookies seguras; bloquea registros abiertos |
+| `APP_URL` | URL pública, p. ej. `https://inventory.lab.zeli.lat` (para los enlaces) |
+| `ALLOWED_EMAILS` | Quién puede entrar: `ana@x.com,@zeli.lat` (en producción es obligatorio) |
+| `RESEND_API_KEY`, `MAIL_FROM` | Envío del enlace de acceso y del enlace de aprobación |
+| `SHOW_LOGIN_LINK=1` | Mientras no haya correo: muestra el enlace de acceso en pantalla |
+| `ANTHROPIC_API_KEY`, `CLAUDE_MODEL` | Opcional: el modelo redacta las explicaciones de los casos de criterio. Sin clave todo funciona igual |
+
+## Railway
+
+1. Agregar el plugin de Postgres al proyecto (crea `DATABASE_URL`).
+2. Variables: `NODE_ENV=production`, `APP_URL`, `ALLOWED_EMAILS`, `SHOW_LOGIN_LINK=1` (hasta configurar Resend).
+3. Build: `npm run build`. Start: `npm start` (si el servicio tenía `vite preview` como comando de inicio, cambiarlo).
+
+---
+
+## Antes: escáner y piloto
+
 Zeli Inventory is intended to become Zeli's inventory-counting product — a field tool for scanning and reconciling physical stock in retail and warehouse environments.
 
 This repository contains **two surfaces**:
