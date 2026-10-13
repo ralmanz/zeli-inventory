@@ -62,11 +62,11 @@ function Home({ me }: { me: Me }) {
       <main className="wrap page">
         <div className="row between end g16">
           <div><h1 className="display">Cierres de conteo</h1><p className="lede">Cada conteo se cierra aquí: diferencias explicadas con su documento, aprobadas y listas para el sistema.</p></div>
-          <div className="row g10"><a className="btn ghost" href="/demo/">Ver ejemplo</a><button className="btn" onClick={create}>Nuevo cierre</button></div>
+          <div className="row g10"><a className="btn" href="/demo/">Ver ejemplo</a><button className="btn ghost" onClick={create}>Nuevo cierre</button></div>
         </div>
         {!me.ai && <p className="small muted" style={{ margin: 0 }}>Redacción con el modelo: apagada (falta la clave). El análisis funciona igual.</p>}
         {list == null ? <p className="muted">Cargando…</p> : !list.length ? (
-          <div className="card pad stack g10" style={{ maxWidth: 640 }}><h2 className="h2">Aún no hay cierres</h2><p style={{ margin: 0 }}>Cree uno y suba el conteo y los saldos del sistema. También puede probar con los archivos de ejemplo.</p><button className="btn" style={{ alignSelf: 'flex-start' }} onClick={create}>Nuevo cierre</button></div>
+          <div className="card pad stack g10" style={{ maxWidth: 640 }}><h2 className="h2">Aún no hay cierres</h2><p style={{ margin: 0 }}>Cree uno y suba el conteo y los saldos del sistema. También puede probar con los archivos de ejemplo.</p><div className="row g10" style={{ alignSelf: 'flex-start' }}><a className="btn" href="/demo/">Ver ejemplo</a><button className="btn ghost" onClick={create}>Nuevo cierre</button></div></div>
         ) : (
           <section className="grid c3">
             {list.map((c) => (
