@@ -113,9 +113,9 @@ function Setup({ ctx }: { ctx: Ctx }) {
 
   return (
     <main className="wrap page">
-      <div className="row between end g16">
+      <div className="row between end g16 page-head">
         <div><h1 className="display">{data.analysis ? 'Archivos del cierre' : 'Nuevo cierre'}</h1><p className="lede">El conteo y los saldos del sistema al mismo corte bastan para el cruce. Cada documento adicional permite explicar más diferencias.</p></div>
-        {!locked && !Object.keys(data.files).length && <button className="btn ghost" onClick={sample} disabled={!!busy}>Probar con archivos de ejemplo</button>}
+        {!locked && !Object.keys(data.files).length && <div className="btns"><button className="btn ghost" onClick={sample} disabled={!!busy}>Probar con archivos de ejemplo</button></div>}
       </div>
       <div className="main-side">
         <div className="main">
@@ -200,9 +200,9 @@ function Differences({ ctx }: { ctx: Ctx }) {
   const total = data.analysis.totals || {}
   return (
     <main className="wrap page">
-      <div className="row between end g16">
+      <div className="row between end g16 page-head">
         <h1 className="display">Diferencias</h1>
-        {!approver && !data.signed && <button className="btn" onClick={send} disabled={sending || !cases.length}>{data.sentAt ? 'Reenviar a aprobación' : 'Enviar a aprobación'}</button>}
+        {!approver && !data.signed && <div className="btns"><button className="btn" onClick={send} disabled={sending || !cases.length}>{data.sentAt ? 'Reenviar a aprobación' : 'Enviar a aprobación'}</button></div>}
       </div>
       {!approver && !data.signed && pending > 0 && <p className="small muted" style={{ margin: '-16px 0 0' }}>{pending} sin proponer. Puede enviar igual: quedan fuera del ajuste hasta que se resuelvan.</p>}
       <section className="grid c4" aria-label="Resumen">
@@ -224,17 +224,17 @@ function Differences({ ctx }: { ctx: Ctx }) {
       <section className="stack g12" aria-labelledby="lv">
         <div className="row between g12"><h2 id="lv" className="h2">Por valor <span className="sub">— {list.length} de {st.n}</span></h2>
           <div className="chips" role="group" aria-label="Filtrar">{[['todas', 'Todas'], ['revisar', 'Por revisar'], ['recuento', 'En recuento'], ['explicadas', 'Propuestas']].map(([k, l]) => <button key={k} className="chip" aria-pressed={filter === k} onClick={() => setFilter(k)}>{l}</button>)}</div></div>
-        <div className="card tablebox"><table style={{ minWidth: 1040 }}>
+        <div className="card tablebox stack-table"><table>
           <thead><tr><th>Artículo</th><th className="r">Sistema</th><th className="r">Físico</th><th className="r">Dif.</th><th className="r">Valor</th><th>Causa propuesta</th><th>Base</th><th>Estado</th></tr></thead>
           <tbody>
             {list.map((c: any) => { const b = baseLabel(c), s = statusLabel(c, meta, byCode), v = value(c)
               return (
                 <tr key={c.code} className={c.pair ? 'pair' : undefined}>
-                  <td><a href={`${base}/caso/${encodeURIComponent(c.code)}`} style={{ fontWeight: 700, textDecoration: 'none' }}>{c.desc || c.code}</a><div className="mono code">{c.code}</div></td>
-                  <td className="r mono num">{plain(c.sys)}</td><td className="r mono num">{plain(c.phys)}</td>
-                  <td className={'r mono num ' + cls(c.diff)} style={{ fontWeight: 600 }}>{fmtN(c.diff)}</td><td className={'r mono num ' + cls(v)} style={{ fontWeight: 600 }}>{money(v)}</td>
-                  <td><div style={{ fontWeight: 650 }}>{c.status === 'cerrada' ? 'Error de conteo' : c.cause}</div><div className="xs muted">{c.summary}</div></td>
-                  <td><Tag c={b.c}>{b.t}</Tag></td><td><Tag c={s.c}>{s.t}</Tag></td>
+                  <td className="span" data-l="Artículo"><a href={`${base}/caso/${encodeURIComponent(c.code)}`} style={{ fontWeight: 700, textDecoration: 'none' }}>{c.desc || c.code}</a><div className="mono code">{c.code}</div></td>
+                  <td className="r mono num" data-l="Sistema">{plain(c.sys)}</td><td className="r mono num" data-l="Físico">{plain(c.phys)}</td>
+                  <td className={'r mono num ' + cls(c.diff)} data-l="Diferencia" style={{ fontWeight: 600 }}>{fmtN(c.diff)}</td><td className={'r mono num ' + cls(v)} data-l="Valor" style={{ fontWeight: 600 }}>{money(v)}</td>
+                  <td className="span" data-l="Causa propuesta"><div style={{ fontWeight: 650 }}>{c.status === 'cerrada' ? 'Error de conteo' : c.cause}</div><div className="xs muted">{c.summary}</div></td>
+                  <td data-l="Base"><Tag c={b.c}>{b.t}</Tag></td><td data-l="Estado"><Tag c={s.c}>{s.t}</Tag></td>
                 </tr>) })}
             {!list.length && <tr><td colSpan={8} className="muted">{st.n ? 'Ninguna diferencia con este filtro.' : 'El conteo coincide con el sistema.'}</td></tr>}
           </tbody></table></div>
@@ -288,9 +288,9 @@ function CaseView({ ctx, code }: { ctx: Ctx; code: string }) {
           <div><h1 id="art" className="display" style={{ fontSize: 'clamp(2rem,4.2vw,2.8rem)' }}>{c.desc || c.code}</h1><p className="mono small muted" style={{ margin: '8px 0 0' }}>{c.code}{c.loc ? ' · ' + c.loc : ''} · costo {money(c.cost, false)}</p></div>
           <div className="row g8">{rr && !ro && <Tag c="t-y">Recuento obligatorio</Tag>}<Tag c={s.c}>{s.t}</Tag></div>
         </div>
-        <div className="grid c4" style={{ gap: 0, borderTop: '1.5px solid var(--ink)' }}>
-          {[['Sistema', plain(c.sys), ''], ['Físico', plain(c.phys), ''], ['Diferencia', fmtN(c.diff), cls(c.diff)], ['Valor', money(v), cls(v)]].map((k, i) => (
-            <div key={k[0]} className="stack g4" style={{ padding: '14px 22px', borderLeft: i ? '1px solid var(--rule)' : undefined }}><span className="xs muted" style={{ fontWeight: 650 }}>{k[0]}</span><span className={'mono num ' + k[2]} style={{ fontSize: '1.6rem', fontWeight: 600 }}>{k[1]}</span></div>))}
+        <div className="metrics">
+          {[['Sistema', plain(c.sys), ''], ['Físico', plain(c.phys), ''], ['Diferencia', fmtN(c.diff), cls(c.diff)], ['Valor', money(v), cls(v)]].map((k) => (
+            <div key={k[0]} className="stack g4"><span className="xs muted" style={{ fontWeight: 650 }}>{k[0]}</span><span className={'mono num n ' + k[2]}>{k[1]}</span></div>))}
         </div>
       </section>
       <div className="main-side">
@@ -298,7 +298,7 @@ function CaseView({ ctx, code }: { ctx: Ctx; code: string }) {
           <section className="card pad stack g12" style={{ boxShadow: '4px 4px 0 var(--blue)' }} aria-labelledby="cp">
             <div className="row g10"><h2 id="cp" className="mono xs" style={{ margin: 0, color: 'var(--blue)', fontWeight: 600 }}>{c.status === 'cerrada' ? 'Resultado' : 'Conclusión propuesta'}</h2>
               <Tag c={c.kind === 'doc' ? 't-g' : c.kind === 'criterio' ? 't-b' : 't-r'}>{c.kind === 'doc' ? 'Con documento' : c.kind === 'criterio' ? 'Requiere criterio' : 'Sin documento'}</Tag></div>
-            <p style={{ margin: 0, fontSize: '1.9rem', lineHeight: 1.05, fontWeight: 800, fontStretch: '72%' }}>{c.status === 'cerrada' ? 'Error de conteo: se cierra sin ajuste' : c.cause + (pair ? ` con ${pair.desc || pair.code}` : '')}</p>
+            <p className="lead-title">{c.status === 'cerrada' ? 'Error de conteo: se cierra sin ajuste' : c.cause + (pair ? ` con ${pair.desc || pair.code}` : '')}</p>
             <p style={{ margin: 0, maxWidth: '68ch' }}>{c.status === 'cerrada' ? 'El recuento dio lo mismo que el sistema. La diferencia fue del conteo, no del inventario.' : c.explain}{c.explainedBy === 'modelo' && <span className="xs muted"> · redactado por el modelo</span>}</p>
             {c.cause !== c.originalCause && <p className="xs muted" style={{ margin: 0 }}>Zeli sugirió: {c.originalCause}. Quien investiga la cambió.</p>}
             {c.status !== 'cerrada' && (
@@ -321,8 +321,8 @@ function CaseView({ ctx, code }: { ctx: Ctx; code: string }) {
           </section>
           <section className="card flat pad stack g8" aria-labelledby="ev">
             <h2 id="ev" className="h2">Evidencia</h2>
-            <div className="tablebox"><table style={{ minWidth: 560 }}><thead><tr><th style={{ paddingLeft: 0 }}>Fuente</th><th>Referencia</th><th>Detalle</th></tr></thead>
-              <tbody>{c.evidence.map((e: any, i: number) => <tr key={i}><td style={{ paddingLeft: 0, fontWeight: 650 }}>{e[0]}</td><td className="mono small" style={{ whiteSpace: 'nowrap' }}>{e[1]}</td><td className="small">{e[2]}</td></tr>)}</tbody></table></div>
+            <div className="tablebox stack-table"><table><thead><tr><th style={{ paddingLeft: 0 }}>Fuente</th><th>Referencia</th><th>Detalle</th></tr></thead>
+              <tbody>{c.evidence.map((e: any, i: number) => <tr key={i}><td className="span" data-l="Fuente" style={{ paddingLeft: 0, fontWeight: 650 }}>{e[0]}</td><td className="span mono small" data-l="Referencia">{e[1]}</td><td className="span small" data-l="Detalle">{e[2]}</td></tr>)}</tbody></table></div>
           </section>
         </div>
         <aside className="side">
@@ -372,18 +372,18 @@ function Recount({ ctx }: { ctx: Ctx }) {
         <div className="main">
           <section className="card" style={{ overflow: 'hidden' }} aria-labelledby="rs">
             <div className="pad-s row between g10"><h2 id="rs" className="h2">Resultados</h2><Tag c="t-ys">{done} de {req.length} con resultado</Tag></div>
-            <div className="tablebox"><table style={{ minWidth: 760 }}><thead><tr><th>Artículo</th><th className="r">Sistema</th><th className="r">Conteo</th><th className="r">Recuento</th><th>Qué significa</th></tr></thead>
+            <div className="tablebox stack-table"><table><thead><tr><th>Artículo</th><th className="r">Sistema</th><th className="r">Conteo</th><th className="r">Recuento</th><th>Qué significa</th></tr></thead>
               <tbody>
                 {req.map((c: any) => { const o = recountOutcome(c)
                   const m = o === 'sistema' ? ['Igual al sistema', 't-g', 'Error de conteo: se cierra sin ajuste.'] : o === 'conteo' ? ['Igual al conteo', 't-b', c.kind === 'none' ? 'Sin documento que lo explique: queda como faltante o sobrante real.' : 'Confirma la diferencia; ya se puede proponer.'] : o === 'otro' ? ['Otro número', 't-r', 'Segundo recuento, o lo decide quien aprueba.'] : ['Pendiente', 't-s', 'Recontar' + (c.loc ? ' en ' + c.loc : '') + '.']
                   return (
-                    <tr key={c.code}><td><strong>{c.desc || c.code}</strong><div className="mono code">{c.code}</div></td>
-                      <td className="r mono num">{plain(c.sys)}</td><td className="r mono num">{plain(c.phys)}</td>
-                      <td className="r"><label className="sr" htmlFor={'rc-' + c.code}>Recuento de {c.desc || c.code}</label>
+                    <tr key={c.code}><td className="span" data-l="Artículo"><strong>{c.desc || c.code}</strong><div className="mono code">{c.code}</div></td>
+                      <td className="r mono num" data-l="Sistema">{plain(c.sys)}</td><td className="r mono num" data-l="Conteo">{plain(c.phys)}</td>
+                      <td className="r" data-l="Recuento"><label className="sr" htmlFor={'rc-' + c.code}>Recuento de {c.desc || c.code}</label>
                         <input id={'rc-' + c.code} className="input sm mono recount-in" inputMode="decimal" defaultValue={c.recount ?? ''} placeholder="—" disabled={!!data.signed || approver}
                           onBlur={(e) => { const v = e.target.value.trim(); if (v !== String(c.recount ?? '')) ctx.decide(c.code, 'recount', { recount: v }) }}
                           onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }} /></td>
-                      <td><Tag c={m[1]}>{m[0]}</Tag><div className="xs muted" style={{ marginTop: 6 }}>{m[2]}</div></td></tr>) })}
+                      <td className="span" data-l="Qué significa"><Tag c={m[1]}>{m[0]}</Tag><div className="xs muted" style={{ marginTop: 6 }}>{m[2]}</div></td></tr>) })}
                 {!req.length && <tr><td colSpan={5} className="muted">No hay recuentos pendientes.</td></tr>}
               </tbody></table></div>
           </section>
@@ -464,7 +464,7 @@ function Approval({ ctx }: { ctx: Ctx }) {
                 {approver && !data.signed && !c.approval && (
                   <>
                     <div className="field"><label htmlFor={'rn-' + c.code}>Comentario (si la devuelve)</label><input id={'rn-' + c.code} className="input sm" value={notes[c.code] || ''} onChange={(e) => setNotes({ ...notes, [c.code]: e.target.value })} /></div>
-                    <div className="row g10" style={{ marginTop: 4 }}><button className="btn sm" onClick={() => ctx.approve(c.code, 'aceptada')}>Aceptar</button><button className="btn ghost sm" onClick={() => ctx.approve(c.code, 'devuelta', notes[c.code] || '')}>Devolver con comentario</button><a className="small" href={`${base}/caso/${encodeURIComponent(c.code)}`} style={{ fontWeight: 650, padding: '8px 4px' }}>Ver evidencia</a></div>
+                    <div className="row g10 tap-row" style={{ marginTop: 4 }}><button className="btn sm" onClick={() => ctx.approve(c.code, 'aceptada')}>Aceptar</button><button className="btn ghost sm" onClick={() => ctx.approve(c.code, 'devuelta', notes[c.code] || '')}>Devolver con comentario</button><a className="small" href={`${base}/caso/${encodeURIComponent(c.code)}`} style={{ fontWeight: 650, padding: '8px 4px' }}>Ver evidencia</a></div>
                   </>
                 )}
                 {approver && !data.signed && c.approval && <button className="btn ghost sm" style={{ alignSelf: 'flex-start' }} onClick={() => ctx.approve(c.code, null)}>Deshacer</button>}
@@ -540,13 +540,13 @@ function Adjustment({ ctx }: { ctx: Ctx }) {
   }
   return (
     <main className="wrap page">
-      <div className="row between end g16"><div><h1 className="display">Archivo de ajuste</h1><p className="lede">Firmado por {s.by} · {fmtDateTime(s.at)} · investigó {meta.investigator}</p></div><span className="stamp">FIRMADO</span></div>
+      <div className="row between end g16 page-head"><div><h1 className="display">Archivo de ajuste</h1><p className="lede">Firmado por {s.by} · {fmtDateTime(s.at)} · investigó {meta.investigator}</p></div><span className="stamp">FIRMADO</span></div>
       {s.self && <p className="note" style={{ margin: 0 }}>Investigó y aprobó la misma persona. El informe lo indica como “sin separación de funciones”.</p>}
       <div className="main-side">
         <div className="main">
           <section className="card" style={{ overflow: 'hidden' }} aria-labelledby="la"><div className="pad-s"><h2 id="la" className="h2">Líneas aprobadas <span className="sub">— {lines.length}</span></h2></div>
-            <div className="tablebox"><table style={{ minWidth: 860 }}><thead><tr><th>Artículo</th><th className="r">Ajuste</th><th className="r">Valor</th><th>Causa · respaldo</th><th>Categoría sugerida</th></tr></thead>
-              <tbody>{lines.map((l) => <tr key={l.code}><td><strong>{l.desc || l.code}</strong><div className="mono code">{l.code}</div></td><td className={'r mono num ' + cls(l.qty)} style={{ fontWeight: 600 }}>{fmtN(l.qty)}</td><td className={'r mono num ' + cls(l.value)} style={{ fontWeight: 600 }}>{money(l.value)}</td><td><div style={{ fontWeight: 650 }}>{l.cause}</div><div className="xs muted">{l.summary}</div></td><td className="small">{l.category}</td></tr>)}</tbody></table></div></section>
+            <div className="tablebox stack-table"><table><thead><tr><th>Artículo</th><th className="r">Ajuste</th><th className="r">Valor</th><th>Causa · respaldo</th><th>Categoría sugerida</th></tr></thead>
+              <tbody>{lines.map((l) => <tr key={l.code}><td className="span" data-l="Artículo"><strong>{l.desc || l.code}</strong><div className="mono code">{l.code}</div></td><td className={'r mono num ' + cls(l.qty)} data-l="Ajuste" style={{ fontWeight: 600 }}>{fmtN(l.qty)}</td><td className={'r mono num ' + cls(l.value)} data-l="Valor" style={{ fontWeight: 600 }}>{money(l.value)}</td><td className="span" data-l="Causa · respaldo"><div style={{ fontWeight: 650 }}>{l.cause}</div><div className="xs muted">{l.summary}</div></td><td className="span small" data-l="Categoría sugerida">{l.category}</td></tr>)}</tbody></table></div></section>
           {out.length > 0 && <section className="card dash pad-s stack g6"><h2 className="h3">Fuera de este ajuste — {out.length}</h2><p className="small muted" style={{ margin: 0 }}>{out.map((c: any) => c.desc || c.code).join(', ')}. Pasan abiertos al próximo conteo.</p></section>}
         </div>
         <aside className="side">

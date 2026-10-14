@@ -60,9 +60,9 @@ function Home({ me }: { me: Me }) {
     <>
       <Header steps={false} right={<><span className="ctx small">{me.email}</span><button className="btn ghost sm" onClick={logout}>Salir</button></>} />
       <main className="wrap page">
-        <div className="row between end g16">
+        <div className="row between end g16 page-head">
           <div><h1 className="display">Cierres de conteo</h1><p className="lede">Cada conteo se cierra aquí: diferencias explicadas con su documento, aprobadas y listas para el sistema.</p></div>
-          <div className="row g10"><a className="btn ghost" href="/demo/">Ver ejemplo</a><button className="btn" onClick={create}>Nuevo cierre</button></div>
+          <div className="btns"><a className="btn ghost" href="/demo/">Ver ejemplo</a><button className="btn" onClick={create}>Nuevo cierre</button></div>
         </div>
         {!me.ai && <p className="small muted" style={{ margin: 0 }}>Redacción con el modelo: apagada (falta la clave). El análisis funciona igual.</p>}
         {list == null ? <p className="muted">Cargando…</p> : !list.length ? (
