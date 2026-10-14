@@ -110,14 +110,14 @@ tr.pair td{background:var(--yellow-soft)}
 .brand{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink)}
 .brand b{font-weight:800;font-size:1.15rem}.brand span{font-size:1.05rem}
 .ctx{font-size:.88rem;color:var(--muted)}
+.crumb{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.crumb a{font-weight:700;font-size:.9rem;color:var(--ink);text-decoration:none;padding:5px 13px;border-radius:999px;background:var(--paper);border:1.5px solid var(--ink)}
+.crumb a:hover{background:var(--ink);color:var(--cream)}
 .steps{display:flex;gap:6px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none}
 .steps a{flex:none;padding:7px 14px;border-radius:999px;border:1.5px solid var(--rule2);text-decoration:none;font-weight:650;font-size:.88rem;white-space:nowrap}
 .steps a[aria-current=step]{background:var(--ink);color:var(--cream);border-color:var(--ink)}
 .demo{background:var(--ink);color:var(--cream);font-size:.8rem}
 .demo .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding-top:7px;padding-bottom:7px}
-.demo .seg{display:inline-flex;border:1px solid #5B655D;border-radius:999px;overflow:hidden}
-.demo .seg button{background:transparent;border:0;color:var(--cream);padding:4px 11px;cursor:pointer;font-size:.8rem;font-weight:600}
-.demo .seg button[aria-pressed=true]{background:var(--yellow);color:var(--yellow-ink)}
 .demo .lnk{background:transparent;border:0;color:var(--cream);text-decoration:underline;cursor:pointer;font-size:.8rem;padding:4px 0}
 main.page{padding-top:36px;padding-bottom:72px;display:flex;flex-direction:column;gap:28px}
 .check-row{display:grid;grid-template-columns:132px minmax(0,1fr);gap:16px;align-items:baseline}
@@ -162,15 +162,17 @@ var CATEGORY = {
   'Unidad de medida':'Corrección de registro','Movimiento durante el corte':'Corrección de registro','Faltante real':'Faltante (gasto)'
 };
 
+function urlAccount(){ try{ return new URLSearchParams(location.search).get('cuenta')==='empresa' ? 'empresa' : 'firma'; }catch(e){ return 'firma'; } }
 function seed(){
+  var acct = urlAccount();
   var C = function(o){ o.status = o.status || (o.kind==='doc' ? 'propuesta' : (o.kind==='none' ? 'recuento' : 'revisar')); o.recount = null; o.approval = null; o.note = o.note || ''; o.proposedBy = o.kind==='doc' ? 'auto' : null; o.originalCause = o.cause; o.returnNote=''; return o; };
   return {
     v: 3,
-    account: 'firma',         // 'firma' | 'empresa'
+    account: acct,            // 'firma' | 'empresa' — viene del enlace (?cuenta=empresa)
     role: 'investigador',     // 'investigador' | 'aprobador'
     firm: 'Consultora Ríos',
     company: 'Ferretería Central',
-    investigator: 'Consultora Ríos',
+    investigator: acct==='firma' ? 'Consultora Ríos' : 'Ana Torres · Encargada de bodega',
     approver: 'L. Méndez · Gerencia de operaciones',
     approverEmail: 'lmendez@ferreteriacentral.com',
     closeName: 'Conteo general — Bodega Central',
@@ -238,7 +240,7 @@ function seed(){
 
 var KEY = 'zeli-inv-close-v3';
 var S;
-function load(){ try{ var raw = localStorage.getItem(KEY); if(raw){ var o = JSON.parse(raw); if(o && o.v===3){ S=o; return; } } }catch(e){} S = seed(); }
+function load(){ try{ var raw = localStorage.getItem(KEY); if(raw){ var o = JSON.parse(raw); if(o && o.v===3 && o.account===urlAccount()){ S=o; return; } } }catch(e){} S = seed(); }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
 load();
 
@@ -310,12 +312,10 @@ var STEPS=[['archivos','1 Archivos'],['diferencias','2 Diferencias'],['caso','3 
 function demoBar(){
   return '<div class="demo" role="region" aria-label="Controles del ejemplo"><div class="wrap">'+
     '<span class="mono" style="color:var(--yellow)">Ejemplo</span>'+
-    '<span>Cuenta:</span><span class="seg" role="group" aria-label="Tipo de cuenta">'+
-      '<button data-a="account" data-v="firma" aria-pressed="'+(S.account==='firma')+'">Consultor o firma</button>'+
-      '<button data-a="account" data-v="empresa" aria-pressed="'+(S.account==='empresa')+'">La empresa</button></span>'+
-    '<span>Entrar como:</span><span class="seg" role="group" aria-label="Rol en este cierre">'+
-      '<button data-a="role" data-v="investigador" aria-pressed="'+(S.role==='investigador')+'">Quien investiga</button>'+
-      '<button data-a="role" data-v="aprobador" aria-pressed="'+(S.role==='aprobador')+'">Quien aprueba</button></span>'+
+    '<span>'+(S.signed ? 'Cierre firmado por <strong>'+esc(S.signed.by)+'</strong>. Así queda el archivo de ajuste.' : S.role==='aprobador'
+      ? 'Ahora ve lo que recibe <strong>quien aprueba</strong> ('+esc(S.approver.split(' · ')[0])+')'
+      : 'Usted es <strong>quien investiga</strong> ('+esc(S.investigator.split(' · ')[0])+')')+'</span>'+
+    (S.role==='aprobador' && !S.signed ? '<button class="lnk" data-a="role" data-v="investigador">Volver a quien investiga</button>' : '')+
     '<button class="lnk" data-a="reset">Reiniciar ejemplo</button>'+
   '</div></div>';
 }
@@ -325,7 +325,7 @@ function header(step){
     '<span class="tag t-y">Día '+S.day+' de '+S.days+' · cierra '+esc(S.deadline)+'</span><span class="ctx xs">'+S.kardexSince+' movimientos en el kardex desde el corte</span>';
   var h = demoBar()+'<header class="top"><div class="wrap bar1">'+
     '<div class="row g16"><a class="brand" href="#/">'+LOGO+'<b>Zeli</b><span>Inventory</span></a>'+
-    (closeHdr ? '<span class="ctx">'+esc(S.company)+' · '+esc(S.closeName)+'</span>' : '<span class="ctx">'+esc(S.account==='firma'?S.firm:S.company)+'</span>')+'</div>'+
+    (closeHdr ? '<nav class="crumb" aria-label="Ruta"><a href="#/">← '+(S.account==='firma'?'Mis clientes':'Mis cierres')+'</a><span class="ctx">'+esc(S.company)+' · '+esc(S.closeName)+'</span></nav>' : '<span class="ctx">'+esc(S.account==='firma'?S.firm:S.company)+'</span>')+'</div>'+
     (closeHdr ? '<div class="row g10">'+counter+'</div>' : '')+
   '</div>';
   if(closeHdr){
@@ -595,8 +595,11 @@ function vAprobacion(){
       '<button class="btn yellow block" data-a="sign"'+(ready?'':' disabled')+'>Firmar cierre</button>'+
       '<button class="btn ghost-light block" data-a="returnall">Devolver todo a quien investiga</button></section>';
   } else {
-    h+='<section class="card dark pad stack g10"><h2 class="h2">Firma</h2><p class="small" style="margin:0">Firma '+esc(self?S.investigator+' (usted mismo)':S.approver.split(' · ')[0])+'. '+(S.sentForApproval?'Ya se le envió el enlace.':'Envíe el cierre desde Diferencias.')+'</p>'+
-      (self?'<button class="btn yellow block" data-a="role" data-v="aprobador">Revisar y firmar yo mismo</button>':'<button class="btn ghost-light block" data-a="role" data-v="aprobador">Ver como quien aprueba (ejemplo)</button>')+'</section>';
+    var apName=self?S.investigator+' (usted mismo)':S.approver.split(' · ')[0];
+    h+= S.sentForApproval
+      ? '<section class="card dark pad stack g10"><span class="mono xs" style="color:var(--yellow)">Siguiente paso del ejemplo</span><h2 class="h2">Enviado a '+esc(apName)+'</h2><p class="small" style="margin:0">'+(self?'Usted mismo revisa y firma.':'Le llegó un enlace que abre directo aquí. Véalo desde su lado: acepta o devuelve los casos y firma.')+'</p>'+
+        '<button class="btn yellow block" data-a="role" data-v="aprobador">'+(self?'Revisar y firmar yo mismo':'Así le llega a quien aprueba →')+'</button></section>'
+      : '<section class="card dark pad stack g10"><h2 class="h2">Firma</h2><p class="small" style="margin:0">Firma '+esc(apName)+'. Primero envíe el cierre desde Diferencias.</p><a class="btn yellow block" href="#/diferencias">Ir a Diferencias</a></section>';
   }
   return h+'</aside></div></main>';
 }
@@ -674,8 +677,7 @@ document.addEventListener('click', function(e){
   var t=e.target.closest('[data-a]'); if(!t || t.disabled) return;
   var a=t.getAttribute('data-a'), id=t.getAttribute('data-id'), v=t.getAttribute('data-v'), c=id?byId(id):null;
   switch(a){
-    case 'account': S.account=v; S.investigator = v==='firma'?S.firm:'Ana Torres · Encargada de bodega'; save(); route(); break;
-    case 'role': S.role=v; save(); go(v==='aprobador'?'#/aprobacion':'#/diferencias'); toast(v==='aprobador'?'Entró como quien aprueba':'Entró como quien investiga'); break;
+    case 'role': S.role=v; save(); go(v==='aprobador'?'#/aprobacion':'#/diferencias'); toast(v==='aprobador'?'Ahora ve lo que recibe quien aprueba':'De vuelta como quien investiga'); break;
     case 'reset': try{localStorage.removeItem(KEY);}catch(x){} S=seed(); FILTER='todas'; go('#/'); toast('Ejemplo reiniciado'); break;
     case 'filter': FILTER=v; route(); break;
     case 'soon': toast('Disponible en la siguiente versión'); break;
@@ -689,7 +691,7 @@ document.addEventListener('click', function(e){
     case 'return':
       var inp=document.getElementById('rn-'+c.id); var msg=inp?inp.value.trim():'';
       c.approval='devuelta'; c.returnNote=msg; if(c.pair){var p3=byId(c.pair); if(p3){p3.approval='devuelta'; p3.returnNote=msg;}} logIt('Devolvió '+c.id+(msg?': '+msg:'')); save(); route(); break;
-    case 'returnall': S.sentForApproval=false; logIt('Devolvió el cierre completo'); save(); toast('Cierre devuelto a quien investiga'); route(); break;
+    case 'returnall': S.sentForApproval=false; logIt('Devolvió el cierre completo'); S.role='investigador'; save(); toast('Cierre devuelto a quien investiga'); go('#/diferencias'); break;
     case 'sign':
       var ack=document.getElementById('ack'); if(!ack || !ack.checked){ toast('Marque la casilla de revisión para firmar'); ack&&ack.focus(); return; }
       S.signed={by:S.approver.split(' · ')[0] + (selfApproval()?' (misma persona que investiga)':''), at:now()}; logIt('Firmó el cierre'); save(); go('#/ajuste'); toast('Cierre firmado'); break;
