@@ -168,6 +168,24 @@ var CATEGORY = {
   'Cruce de referencias':'Reclasificación entre artículos','Error de código o maestro':'Corrección de registro',
   'Unidad de medida':'Corrección de registro','Movimiento durante el corte':'Corrección de registro','Faltante real':'Faltante (gasto)'
 };
+/* Cómo se corrige cada causa: 'ajuste' = ajuste de inventario; 'doc' = se registra o corrige el documento en el sistema. [ruta, acción, ¿cambia el saldo del sistema?] */
+var ROUTE = {
+  'Facturado, no despachado':['doc','Despachar con su guía. La mercancía ya es del cliente',false],
+  'Recibido, no registrado':['doc','Registrar la recepción de compra (crea la cuenta por pagar)',true],
+  'Error de despacho (picking)':['doc','Facturar o reclamar al cliente lo despachado de más',true],
+  'Error al recibir del proveedor':['doc','Corregir la recepción y pedir nota de crédito al proveedor',true],
+  'Transferencia desconocida o en tránsito':['doc','Registrar la transferencia entre bodegas',true],
+  'Devolución mal procesada':['doc','Anular la entrada duplicada de la nota de crédito',true],
+  'Ajuste sin aprobar':['doc','Aprobar o anular el ajuste pendiente',true],
+  'Merma o vencido sin dar de baja':['ajuste','Dar de baja como merma',true],
+  'Cruce de referencias':['ajuste','Reclasificar entre los dos artículos',true],
+  'Error de código o maestro':['doc','Corregir la etiqueta o el maestro de artículos',false],
+  'Unidad de medida':['doc','Corregir el registro de la unidad (caja o unidad)',true],
+  'Movimiento durante el corte':['doc','Nada que ajustar: la recepción entra con su fecha, después del corte',false],
+  'Faltante real':['ajuste','Dar de baja como faltante',true]
+};
+function isAdj(c){ return (ROUTE[c.cause]||['ajuste'])[0]==='ajuste'; }
+function routeOf(c){ return ROUTE[c.cause]||['ajuste','',true]; }
 
 function urlAccount(){ try{ return new URLSearchParams(location.search).get('cuenta')==='empresa' ? 'empresa' : 'firma'; }catch(e){ return 'firma'; } }
 function seed(){
@@ -309,7 +327,7 @@ function stats(){
   });
   s.net=s.short+s.over; return s;
 }
-function adjTotal(){ var t=0; S.cases.forEach(function(c){ if(inAdjustment(c) && (S.signed || c.approval!=='devuelta')) t+=finalVal(c); }); return Math.round(t*100)/100; }
+function adjTotal(){ var t=0; S.cases.forEach(function(c){ if(inAdjustment(c) && isAdj(c) && (S.signed || c.approval!=='devuelta')) t+=finalVal(c); }); return Math.round(t*100)/100; }
 function selfApproval(){ return !S.approver || S.approver.trim()==='' || S.approver.split(' · ')[0].trim()===S.investigator.trim(); }
 
 /* ---------- piezas ---------- */
@@ -495,8 +513,12 @@ function vCaso(id){
     '<section class="card pad stack g12" style="box-shadow:4px 4px 0 var(--blue)" aria-labelledby="cp"><div class="row g10"><h2 id="cp" class="mono xs" style="margin:0;color:var(--blue);font-weight:600">'+(c.status==='cerrada'?'Resultado':'Conclusión propuesta')+'</h2><span class="tag '+b.c+'">'+(c.kind==='doc'?'Con documento':c.kind==='criterio'?'Requiere criterio':'Sin documento')+'</span></div>'+
       '<p style="margin:0;font-size:1.9rem;line-height:1.05;font-weight:800;font-stretch:72%">'+esc(c.status==='cerrada'?'Error de conteo: se cierra sin ajuste':c.cause+(pair?' con '+pair.name.split(',')[0].replace('Pintura látex ',''):''))+'</p>'+
       '<p style="margin:0;max-width:68ch">'+esc(c.status==='cerrada'?'El recuento dio lo mismo que el sistema. La diferencia fue del conteo, no del inventario.':c.explain)+'</p>';
-  if(c.status!=='cerrada'){
-    h+='<div class="card flat pad-s stack g8" style="background:var(--cream)"><strong class="small">Ajuste propuesto</strong><div class="mini mono">'+
+  if(c.status!=='cerrada' && !isAdj(c)){
+    h+='<div class="card flat pad-s stack g8" style="background:var(--cream)"><strong class="small">Cómo se corrige</strong><p style="margin:0;font-weight:650">'+esc(routeOf(c)[1])+'.</p>'+
+      '<span class="small">No va como ajuste de inventario: se corrige con el documento en su sistema. '+esc(docEffect(c))+'.</span></div>';
+  }
+  if(c.status!=='cerrada' && isAdj(c)){
+    h+='<div class="card flat pad-s stack g8" style="background:var(--cream)"><strong class="small">Ajuste de inventario propuesto</strong><div class="mini mono">'+
       '<span>'+esc(c.id)+'</span><span class="'+cls(finalQty(c))+'">'+fmtN(finalQty(c))+'</span><span class="'+cls(finalVal(c))+'">'+money(finalVal(c))+'</span>'+
       (pair?'<span>'+esc(pair.id)+'</span><span class="'+cls(finalQty(pair))+'">'+fmtN(finalQty(pair))+'</span><span class="'+cls(finalVal(pair))+'">'+money(finalVal(pair))+'</span><span style="font-weight:600">Neto del par</span><span></span><span style="font-weight:600">'+money(finalVal(c)+finalVal(pair))+'</span>':'')+
       '</div><span class="xs muted">Categoría contable sugerida: '+esc(CATEGORY[c.cause])+'. La confirma su contador.</span></div>';
@@ -565,16 +587,17 @@ function vAprobacion(){
   var out=S.cases.filter(function(c){return c.status!=='propuesta'&&c.status!=='cerrada';});
   var pendingAtt=att.filter(function(c){return !c.approval;}).length;
   var loss=0, rec=0; S.cases.forEach(function(c){ if(inAdjustment(c) && c.approval!=='devuelta'){ if(c.cause==='Faltante real'||c.cause==='Merma o vencido sin dar de baja') loss+=finalVal(c); else rec++; }});
-  var cats={}; S.cases.forEach(function(c){ if(inAdjustment(c) && c.approval!=='devuelta'){ var k=CATEGORY[c.cause]; cats[k]=(cats[k]||0)+finalVal(c);} });
+  var cats={}; S.cases.forEach(function(c){ if(inAdjustment(c) && c.approval!=='devuelta' && isAdj(c)){ var k=CATEGORY[c.cause]; cats[k]=(cats[k]||0)+finalVal(c);} });
+  var docs=docLines();
   var self=selfApproval();
   var h=header('aprobacion')+'<main class="wrap page">'+
     '<div class="stack g12"><h1 class="display">Aprobar el cierre</h1><p class="lede" style="margin:0">'+esc(S.investigator)+' investigó las '+S.cases.length+' diferencias. Revise lo que necesita criterio; el resto viene respaldado por documentos.</p>'+
     '<span class="tag '+(self?'t-ys':'t-g')+'" style="align-self:flex-start">'+(self?'Investiga y aprueba la misma persona · sin separación de funciones':'Investigó '+esc(S.investigator)+' · aprueba '+esc(S.approver.split(' · ')[0])+' · funciones separadas')+'</span></div>'+
     (!S.sentForApproval && !S.signed ? '<div class="note">Quien investiga todavía no ha enviado el cierre. Puede revisar, pero lo normal es firmar después del envío.</div>' : '')+
     '<section class="grid c4" aria-label="Resumen">'+
-      '<div class="card kpi"><span class="k">Ajuste neto</span><span class="v">'+money(adjTotal())+'</span><span class="xs muted">'+out.length+' caso(s) quedan fuera</span></div>'+
-      '<div class="card kpi"><span class="k">Pérdida real y merma</span><span class="v neg">'+money(loss)+'</span><span class="xs muted">Sin documento que la explique, o merma</span></div>'+
-      '<div class="card kpi"><span class="k">Errores de registro y otros</span><span class="v pos">'+rec+'</span><span class="xs muted">Corregidos con documento o criterio</span></div>'+
+      '<div class="card kpi"><span class="k">Ajuste de inventario</span><span class="v '+cls(adjTotal())+'">'+money(adjTotal())+'</span><span class="xs muted">Merma, faltante y reclasificación</span></div>'+
+      '<div class="card kpi"><span class="k">Documentos por registrar</span><span class="v pos">'+docs.length+'</span><span class="xs muted">Se corrigen en su sistema, sin ajuste</span></div>'+
+      '<div class="card kpi"><span class="k">Fuera de este cierre</span><span class="v">'+out.length+'</span><span class="xs muted">Sin propuesta o en recuento</span></div>'+
       '<div class="card kpi"><span class="k">Su atención</span><span class="v" style="color:var(--blue)">'+att.length+'</span><span class="xs muted">'+pendingAtt+' sin decidir</span></div></section>'+
     '<div class="main-side"><div class="main"><h2 class="h2">Requieren su atención <span class="sub">— '+att.length+' casos</span></h2>';
   if(!att.length) h+='<p class="card flat pad-s small" style="margin:0">Nada pendiente de criterio. Las propuestas llegarán aquí cuando quien investiga las haga.</p>';
@@ -590,9 +613,12 @@ function vAprobacion(){
         '<a class="small" href="#/caso/'+esc(c.id)+'" style="font-weight:650">Ver evidencia</a>')+'</article>'; });
   h+='<section class="card flat pad-s row between g10"><div><h2 class="h3">Respaldadas por documento — '+docOk.length+' casos</h2><p class="small muted" style="margin:4px 0 0">Facturas, guías, recepciones y notas de crédito que explican cada una.'+(closed.length?' '+closed.length+' se cerró por error de conteo.':'')+'</p></div><a href="#/diferencias" class="small" style="font-weight:700">Ver lista →</a></section>';
   if(out.length) h+='<section class="card dash pad-s stack g6"><h2 class="h3">Fuera de este ajuste — '+out.length+'</h2><p class="small muted" style="margin:0">'+out.map(function(c){return esc(c.name);}).join(', ')+'. Siguen sin propuesta o en recuento; pasan abiertos al próximo conteo.</p></section>';
-  h+='</div><aside class="side"><section class="card flat pad stack g8" aria-labelledby="ec"><h2 id="ec" class="h3">Efecto contable sugerido</h2><ul class="list small">';
+  h+='</div><aside class="side"><section class="card flat pad stack g8" aria-labelledby="ec"><h2 id="ec" class="h3">Ajuste de inventario</h2><ul class="list small">';
   Object.keys(cats).forEach(function(k){ h+='<li class="row between g10"><span>'+esc(k)+'</span><span class="mono num '+cls(cats[k])+'" style="font-weight:600">'+money(cats[k])+'</span></li>'; });
-  h+='</ul><span class="xs muted">Es una sugerencia por categoría. Las cuentas y el asiento los define su contador.</span></section>';
+  if(!Object.keys(cats).length) h+='<li class="small muted">Nada por ajustar todavía.</li>';
+  h+='</ul><h2 class="h3" style="margin-top:8px">Por registrar en su sistema — '+docs.length+'</h2><ul class="list small">';
+  docs.forEach(function(c){ h+='<li class="stack g4"><span style="font-weight:650">'+esc(routeOf(c)[1])+'</span><span class="xs muted">'+esc(c.name)+' · '+esc(c.summary)+'</span></li>'; });
+  h+='</ul><span class="xs muted">Es una sugerencia. Las cuentas y el asiento los define su contador.</span></section>';
   if(S.signed){
     h+='<section class="card dark pad stack g10"><h2 class="h2">Firmado</h2><p class="small" style="margin:0">'+esc(S.signed.by)+' · '+esc(S.signed.at)+'</p><a class="btn yellow block" href="#/ajuste">Ver archivo de ajuste</a></section>';
   } else if(S.role==='aprobador'){
@@ -612,24 +638,30 @@ function vAprobacion(){
 }
 
 /* ---------- pantalla 6 ---------- */
-function adjLines(){ return sortedCases().filter(function(c){ return inAdjustment(c) && c.approval!=='devuelta'; }); }
+function adjLines(){ return sortedCases().filter(function(c){ return inAdjustment(c) && c.approval!=='devuelta' && isAdj(c); }); }
+function docLines(){ return sortedCases().filter(function(c){ return inAdjustment(c) && c.approval!=='devuelta' && !isAdj(c); }); }
+function docEffect(c){ return routeOf(c)[2] ? 'El sistema pasa de '+c.sys.toLocaleString('en-US')+' a '+(c.sys+finalQty(c)).toLocaleString('en-US')+' ('+money(finalVal(c))+')' : 'Sin cambio: el sistema ya está correcto'; }
 function vAjuste(){
   var h=header('ajuste')+'<main class="wrap page">';
   if(!S.signed){
-    return h+'<div><h1 class="display">Archivo de ajuste</h1><p class="lede">Se habilita cuando quien aprueba firma el cierre.</p></div><div class="card pad stack g12" style="max-width:640px"><p style="margin:0">Mientras tanto, el ajuste neto propuesto es <strong class="mono">'+money(adjTotal())+'</strong>.</p><a class="btn" href="#/aprobacion" style="align-self:flex-start">Ir a aprobación</a></div></main>';
+    return h+'<div><h1 class="display">Archivo de ajuste</h1><p class="lede">Se habilita cuando quien aprueba firma el cierre.</p></div><div class="card pad stack g12" style="max-width:640px"><p style="margin:0">Mientras tanto, el ajuste de inventario propuesto es <strong class="mono">'+money(adjTotal())+'</strong>, y hay '+docLines().length+' documentos por registrar.</p><a class="btn" href="#/aprobacion" style="align-self:flex-start">Ir a aprobación</a></div></main>';
   }
   var lines=adjLines(); var out=S.cases.filter(function(c){return c.status!=='propuesta'&&c.status!=='cerrada';});
   var accepted=S.cases.filter(function(c){return c.status==='propuesta' && c.cause===c.originalCause && c.approval!=='devuelta';}).length;
   var proposed=S.cases.filter(function(c){return c.status==='propuesta';}).length;
   h+='<div class="row between end g16"><div><h1 class="display">Archivo de ajuste</h1><p class="lede">Firmado por '+esc(S.signed.by)+' · '+esc(S.signed.at)+' · investigó '+esc(S.investigator)+'</p></div><span class="stamp">FIRMADO</span></div>'+
     (selfApproval()?'<p class="note" style="margin:0">Investigó y aprobó la misma persona. El informe lo indica como “sin separación de funciones”.</p>':'')+
-    '<div class="main-side"><div class="main"><section class="card" style="overflow:hidden" aria-labelledby="la"><div class="pad-s"><h2 id="la" class="h2">Líneas aprobadas <span class="sub">— '+lines.length+'</span></h2></div><div class="tablebox"><table style="min-width:860px"><thead><tr><th>Artículo</th><th class="r">Ajuste</th><th class="r">Valor</th><th>Causa · respaldo</th><th>Categoría sugerida</th></tr></thead><tbody>';
+    '<div class="main-side"><div class="main"><section class="card" style="overflow:hidden" aria-labelledby="la"><div class="pad-s"><h2 id="la" class="h2">Ajuste de inventario <span class="sub">— '+lines.length+'</span></h2></div><div class="tablebox"><table style="min-width:860px"><thead><tr><th>Artículo</th><th class="r">Ajuste</th><th class="r">Valor</th><th>Causa · respaldo</th><th>Categoría sugerida</th></tr></thead><tbody>';
   lines.forEach(function(c){ var q=finalQty(c), v=finalVal(c);
     h+='<tr><td><strong>'+esc(c.name)+'</strong><div class="mono code">'+esc(c.id)+'</div></td><td class="r mono num '+cls(q)+'" style="font-weight:600">'+fmtN(q)+'</td><td class="r mono num '+cls(v)+'" style="font-weight:600">'+money(v)+'</td><td><div style="font-weight:650">'+esc(c.cause)+'</div><div class="xs muted">'+esc(c.summary)+(c.cause!==c.originalCause?' · causa cambiada por quien investiga':'')+'</div></td><td class="small">'+esc(CATEGORY[c.cause])+'</td></tr>'; });
+  var docs=docLines();
   h+='</tbody></table></div></section>'+
+    '<section class="card" style="overflow:hidden" aria-labelledby="dr"><div class="pad-s"><h2 id="dr" class="h2">Documentos por registrar <span class="sub">— '+docs.length+'</span></h2><p class="small muted" style="margin:4px 0 0">No van en el ajuste. Cada uno se corrige con su propio documento en el sistema.</p></div><div class="tablebox"><table style="min-width:860px"><thead><tr><th>Artículo</th><th class="r">Diferencia</th><th>Qué registrar</th><th>Respaldo</th><th>Efecto en el sistema</th></tr></thead><tbody>'+
+    docs.map(function(c){ return '<tr><td><strong>'+esc(c.name)+'</strong><div class="mono code">'+esc(c.id)+'</div></td><td class="r mono num '+cls(finalQty(c))+'" style="font-weight:600">'+fmtN(finalQty(c))+'</td><td><div style="font-weight:650">'+esc(routeOf(c)[1])+'</div><div class="xs muted">'+esc(c.cause)+'</div></td><td class="xs">'+esc(c.summary)+'</td><td class="small">'+esc(docEffect(c))+'</td></tr>'; }).join('')+
+    '</tbody></table></div></section>'+
     (out.length?'<section class="card dash pad-s stack g6"><h2 class="h3">Fuera de este ajuste — '+out.length+'</h2><p class="small muted" style="margin:0">'+out.map(function(c){return esc(c.name);}).join(', ')+'. Pasan abiertos al próximo conteo.</p></section>':'')+
-    '</div><aside class="side"><section class="card pad stack g12" aria-labelledby="dl"><h2 id="dl" class="h2">Descargar</h2><div class="stack g4" style="padding-bottom:12px;border-bottom:1px solid var(--rule)"><span class="xs muted" style="font-weight:650">Ajuste neto firmado</span><span class="mono num" style="font-size:1.8rem;font-weight:600">'+money(adjTotal())+'</span></div>'+
-      '<button class="btn block" data-a="csv">Archivo de ajuste (CSV para Excel)</button><button class="btn ghost block" data-a="csvimp">CSV para importar al ERP</button><button class="btn ghost block" data-a="report">Informe de cierre (imprimir o PDF)</button>'+
+    '</div><aside class="side"><section class="card pad stack g12" aria-labelledby="dl"><h2 id="dl" class="h2">Descargar</h2><div class="stack g4" style="padding-bottom:12px;border-bottom:1px solid var(--rule)"><span class="xs muted" style="font-weight:650">Ajuste de inventario firmado</span><span class="mono num" style="font-size:1.8rem;font-weight:600">'+money(adjTotal())+'</span></div>'+
+      '<button class="btn block" data-a="csv">Archivo de ajuste (CSV para Excel)</button><button class="btn ghost block" data-a="csvimp">CSV para importar al ERP</button><button class="btn ghost block" data-a="csvdocs">Documentos por registrar (CSV)</button><button class="btn ghost block" data-a="report">Informe de cierre (imprimir o PDF)</button>'+
       '<p class="xs muted" style="margin:0">El informe lista cada diferencia con su causa, sus documentos, quién la propuso y quién la firmó'+(S.account==='firma'?', con el nombre de '+esc(S.firm):'')+'.</p><p class="note xs" style="margin:0">Este archivo no modifica su sistema. Impórtelo o regístrelo en su ERP como cualquier ajuste.</p></section>'+
     (S.account==='firma'?'<section class="card dark pad stack g8"><span class="mono xs" style="color:var(--yellow)">Para usted, consultor</span><h2 class="h3" style="font-size:1.4rem">'+accepted+' de '+proposed+' causas sugeridas aceptadas sin cambios</h2><p class="small" style="margin:0">Con más cierres, cada causa muestra qué tan seguido acierta.</p></section>':'')+
     '</aside></div></main>';
@@ -650,9 +682,11 @@ function buildReport(listOnly){
     '<p style="margin:0 0 2px">'+esc(S.company)+' · '+esc(S.closeName)+' · corte '+esc(S.cutoff)+'</p>'+
     '<p style="margin:0 0 2px">Investigó: '+esc(S.investigator)+(S.account==='firma'?' ('+esc(S.firm)+')':'')+' · Firmó: '+esc(S.signed?S.signed.by:'—')+' · '+esc(S.signed?S.signed.at:'')+'</p>'+
     (selfApproval()?'<p style="margin:0 0 2px"><strong>Sin separación de funciones:</strong> investigó y aprobó la misma persona.</p>':'')+
-    '<p style="margin:8px 0">Ajuste neto: <strong>'+money(adjTotal())+'</strong></p>'+
+    '<p style="margin:8px 0">Ajuste de inventario: <strong>'+money(adjTotal())+'</strong> · Documentos por registrar: <strong>'+docLines().length+'</strong></p>'+
     '<table><thead><tr><th>Código</th><th>Artículo</th><th>Ajuste</th><th>Valor</th><th>Causa</th><th>Respaldo</th><th>Categoría</th></tr></thead><tbody>'+
     lines.map(function(c){return '<tr><td>'+esc(c.id)+'</td><td>'+esc(c.name)+'</td><td>'+fmtN(finalQty(c))+'</td><td>'+money(finalVal(c))+'</td><td>'+esc(c.cause)+'</td><td>'+esc(c.summary)+'</td><td>'+esc(CATEGORY[c.cause])+'</td></tr>';}).join('')+'</tbody></table>'+
+    '<h2 style="font-size:13pt;margin:14px 0 4px">Documentos por registrar</h2><table><thead><tr><th>Código</th><th>Artículo</th><th>Diferencia</th><th>Qué registrar</th><th>Respaldo</th><th>Efecto en el sistema</th></tr></thead><tbody>'+
+    docLines().map(function(c){return '<tr><td>'+esc(c.id)+'</td><td>'+esc(c.name)+'</td><td>'+fmtN(finalQty(c))+'</td><td>'+esc(routeOf(c)[1])+'</td><td>'+esc(c.summary)+'</td><td>'+esc(docEffect(c))+'</td></tr>';}).join('')+'</tbody></table>'+
     '<h2 style="font-size:13pt;margin:14px 0 4px">Registro</h2><ul style="font-size:9.5pt">'+S.log.map(function(l){return '<li>'+esc(l.at)+' · '+esc(l.by)+' · '+esc(l.t)+'</li>';}).join('')+'</ul>';
 }
 function csv(rows){ return rows.map(function(r){ return r.map(function(x){ x=String(x==null?'':x); return /[",\n;]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x; }).join(','); }).join('\r\n'); }
@@ -705,6 +739,8 @@ document.addEventListener('click', function(e){
     case 'send': S.sentForApproval=true; logIt('Envió el cierre a aprobación'); save(); toast(selfApproval()?'Listo para que usted mismo lo firme':'Enlace enviado a '+S.approver.split(' · ')[0]); go('#/aprobacion'); break;
     case 'csv':
       download('ajuste_'+S.company.replace(/\W+/g,'_')+'.csv', csv([['Código','Artículo','Ubicación','Sistema','Físico','Ajuste','Costo','Valor','Causa','Respaldo','Categoría sugerida','Propuso','Firmó']].concat(adjLines().map(function(c){return [c.id,c.name,c.loc,c.sys,c.phys,finalQty(c),c.cost.toFixed(2),finalVal(c).toFixed(2),c.cause,c.summary,CATEGORY[c.cause],c.proposedBy==='auto'?S.investigator:c.proposedBy,S.signed?S.signed.by:''];})))); break;
+    case 'csvdocs':
+      download('documentos_por_registrar.csv', csv([['Código','Artículo','Diferencia','Causa','Qué registrar','Respaldo','Efecto en el sistema']].concat(docLines().map(function(c){return [c.id,c.name,finalQty(c),c.cause,routeOf(c)[1],c.summary,docEffect(c)];})))); break;
     case 'csvimp':
       download('ajuste_importar.csv', csv([['codigo','cantidad','costo_unitario','motivo']].concat(adjLines().map(function(c){return [c.id,finalQty(c),c.cost.toFixed(2),c.cause];})))); break;
     case 'report': buildReport(false); window.print(); break;
